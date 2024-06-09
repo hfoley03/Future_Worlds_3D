@@ -293,23 +293,54 @@ void ofApp::automaCellulare(){
             }
             float chance = ofRandom(8.0);
             
-            if(foodIncreasing){
-                if(currentType == "sand" && nGrass >= 2){
-                   if(chance < foodData[currentYear]){
-                       cout << "chance " + ofToString(chance) + " foodLvl " +  ofToString(foodData[currentYear]) << endl;
-                        cells[i][j].cellType = "grass";
-                        cells[i][j].cellColor = ofColor(0, 255, 0);
-                        cout << "make grass" << endl;
+            // FOOD RULE SAND VS GRASS
+            if(true){
+                
+                if(foodIncreasing){
+                    if(currentType == "sand" && nGrass >= 2){
+                        if(chance < foodData[currentYear]){
+                            cout << "chance " + ofToString(chance) + " foodLvl " +  ofToString(foodData[currentYear]) << endl;
+                            cells[i][j].cellType = "grass";
+                            cells[i][j].cellColor = grassColors[(int)ofRandom(7)];
+                            cout << "make grass" << endl;
+                            cout << cells[i][j].cellColor << endl;
+                            
+                        }
+                    }
+                }
+                
+                if(!foodIncreasing){
+                    if(currentType == "grass" && currentInitType == "sand"){
+                        if(chance < foodData[currentYear]/2   ){
+                            cells[i][j].cellType = "sand";
+                            cells[i][j].cellColor = sandColors[(int)ofRandom(4)];
+                            cout << "make sand" << endl;
+                        }
                     }
                 }
             }
             
-            if(!foodIncreasing){
-                if(currentType == "grass" && currentInitType == "sand"){
-                    if(chance < foodData[currentYear]/2   ){
-                        cells[i][j].cellType = "sand";
-                        cells[i][j].cellColor = ofColor(255,250,205);
-                        cout << "make sand" << endl;
+            // Eco Foot Rule Grass Vs Sea
+            if(true){
+                if(pollutionIncreasing){
+                    if(currentType == "grass" && nOcean >= 4){
+                        if(ecoFootData[currentYear] > 0.2){
+                            if(chance < ecoFootData[currentYear]){ //chance
+                                cells[i][j].cellType = "ocean";
+                                cells[i][j].cellColor = seaColors[(int)ofRandom(6)];
+                            }
+                        }
+                    }
+                }
+                
+                if(!pollutionIncreasing){
+                    if(currentType == "ocean" && currentInitType == "grass"){
+                        if(ecoFootData[currentYear] < 0.4){
+                            if(chance < 1.0){ //chance
+                                cells[i][j].cellType = "grass";
+                                cells[i][j].cellColor = grassColors[(int)ofRandom(7)];
+                            }
+                        }
                     }
                 }
             }
@@ -551,7 +582,9 @@ void ofApp::dragEvent(ofDragInfo dragInfo){
 void ofApp::checkDataDirection() {
     
     int nextYear = currentYear + 1;
-    pollutionIncreasing = (ecoFootData[currentYear] < ecoFootData[nextYear] && ecoFootData[currentYear] > 0.1);
+    if( ecoFootData[currentYear] > 0.1){
+        pollutionIncreasing = (ecoFootData[currentYear] < ecoFootData[nextYear]);
+    }
     populationIncreasing = (populationData[currentYear] < populationData[nextYear] && populationData[currentYear] > 0.1);
     foodIncreasing = (foodData[currentYear] < foodData[nextYear]);
     industryIncreasing = (industryData[currentYear] < industryData[nextYear]);
