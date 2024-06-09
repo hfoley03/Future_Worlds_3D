@@ -1,6 +1,7 @@
 
 //--------------------------------------------------------------
 #include "ofApp.h"
+using namespace std;
 
 //--------------------------------------------------------------
 void ofApp::setup(){
@@ -10,42 +11,31 @@ void ofApp::setup(){
 //    light.setPosition(ofVec3f(100,100,200));
 //    light.lookAt(ofVec3f(0,0,0));
     ofSetBackgroundColor(0);
+    loadCSVData();
+    normSetup();
     imageToGrid();
     setCellSphereRadius();
-    lastMinute = ofGetElapsedTimeMillis();
     variableSetup();
+    lastMinute = ofGetElapsedTimeMillis();
+
     std::cout << "set up finished"  << std::endl;
 }
 
-void ofApp::variableSetup(){
-    pollutionIncreasing = false;
-    populationIncreasing = true;
-    extremePollution = false;
-    startYear = 1900;
-    endYear = 2100;
-    r1 = {-1*_PI, _PI};
-    r2 = {0.0, 640.0};
-    sphere.setRadius(128);
-    spherePlanet.setRadius(32);
-    rotationAngle = 0.0;
-    maxPopYear = distance(populationData, max_element(populationData, populationData + 200));
-    maxPulYear = distance(pollutionData, max_element(pollutionData, pollutionData + 200));
-    maxIndYear = distance(industryData, max_element(industryData, industryData + 200));
-}
+
 
 
 //--------------------------------------------------------------
 void ofApp::update(){
-    rotationAngle += 0.1;  // Increment the rotation angle
-    
+    rotationAngle += 0.1;  // for globe spin
+
     if(currentYear == 199){ start = false;}
-    
+
     if(start){
         now = ofGetElapsedTimeMillis();
-        if (now - lastMinute >= 200) { // 60000 milliseconds = 1 minute
+        if (now - lastMinute >= speed) { // 60000 milliseconds = 1 minute
             automaCellulare();
             checkDataDirection();
-            udatePlotter();
+            updatePlotter();
             currentYear += 1;
             lastMinute = now;
         }
@@ -56,8 +46,9 @@ void ofApp::update(){
 void ofApp::draw(){
     //worldImage.draw(0,0);
 
-    earthSpinning();
-//    cellArrayToImage();
+//    earthSpinning();
+    
+    cellArrayToImage();
     
     drawGUI();
     dataPlotter();
@@ -71,38 +62,38 @@ void ofApp::dataPlotter(){
 
 
     
-    if(populationPoly.size() > 0){
-        ofSetColor(255, 0, 0);
+    if(pollutionPoly.size() > 0){
+        ofSetColor(50, 50, 50);
         populationPoly.draw();
-        ofSetColor(0, 255, 0);
+        ofSetColor(255, 255, 255);
         pollutionPoly.draw();
-        ofSetColor(0, 255, 255);
+        ofSetColor(0, 255, 0);
         foodPoly.draw();
-        ofSetColor(255, 255, 0);
+        ofSetColor(50, 50, 50);
         industryPoly.draw();
-        ofSetColor(255, 0, 255);
-        resourcePoly.draw();
+        ofSetColor(50, 50, 50);
+        lifeExpPoly.draw();
     }
-    ofSetColor(100);
-    ofDrawRectangle(ofGetWidth() - plotWidth, 0 + 30, plotWidth, plotHeight);
+    //ofSetColor(100);
+    //ofDrawRectangle(ofGetWidth() - plotWidth, 0 + 30, plotWidth, plotHeight);
  
 }
 
-void ofApp::udatePlotter(){
+void ofApp::updatePlotter(){
     ofSetLineWidth(3);
 
     float xx = ((float)currentYear / 200.0) * plotWidth + origin.x;
     populationPoly.addVertex( xx , origin.y - (populationData[currentYear] * plotHeight));
-    pollutionPoly.addVertex( xx , origin.y - (pollutionData[currentYear] * plotHeight));
+    pollutionPoly.addVertex( xx , origin.y - (ecoFootData[currentYear] * plotHeight));
     foodPoly.addVertex( xx , origin.y - (foodData[currentYear] * plotHeight));
     industryPoly.addVertex( xx , origin.y - (industryData[currentYear] * plotHeight));
-    resourcePoly.addVertex( xx , origin.y - (resourceData[currentYear] * plotHeight));
+    lifeExpPoly.addVertex( xx , origin.y - (lifeExpData[currentYear] * plotHeight));
     
     populationPoly.getSmoothed(5, 0.33);
     pollutionPoly.getSmoothed(5, 0.33);
     foodPoly.getSmoothed(5, 0.33);
     industryPoly.getSmoothed(5, 0.33);
-    resourcePoly.getSmoothed(5, 0.33);
+    lifeExpPoly.getSmoothed(5, 0.33);
     
 }
 
@@ -181,7 +172,7 @@ void ofApp::imageToGrid(){
             ofColor rgbColor =  worldImage.getColor(i,j);
             cell.cellColor = rgbColor;
             cell.cellType = classifyCelltype(rgbColor, imageHeight, j);
-
+            cell.initCellType = cell.cellType;
 
             
             colorCounter++;
@@ -240,27 +231,45 @@ void ofApp::cellArrayToImage3D(){
 }
 
 void ofApp::automaCellulare(){
-    int neighboursIce = 0;
-    int neighboursCity = 0;
-    int neighboursOcean = 0;
-    int neighboursLand = 0;
+    int nIce = 0;
+    int nCity = 0;
+    int nOcean = 0;
+    int nGrass = 0;
+    int nSand = 0;
     int ii;
     int jj;
     int iceCounterTemp = 0;
+    sandCounter = 0;
+    oceanCounter = 0;
+    cityCounter = 0;
+    grassCounter = 0;
 
-    Cell _c;
+
+    Cell _c; // current cell
+    
     for(int i = 0; i < 80; i = i + 1)
     {
         for(int j = 0; j < 80; j = j + 1)
         {
-            neighboursIce = 0;
-            neighboursCity = 0;
-            neighboursOcean = 0;
-            neighboursLand = 0;
+            nIce = 0;
+            nCity = 0;
+            nOcean = 0;
+            nGrass = 0;
+            nSand = 0;
+
+            _c = cells[i][j]; // current cell of interest
+            string currentType = _c.cellType;
+            string currentInitType = _c.initCellType;
             
-            _c = cells[i][j];
-            if(_c.cellType == "ice"){ iceCounterTemp++;}
-            
+            if(currentType== "ice"){ iceCounterTemp++;}
+            else if(currentType == "sand"){ sandCounter++;}
+            else if(currentType == "grass"){ grassCounter++;}
+            else if(currentType == "ocean"){ oceanCounter++;}
+            else if(currentType == "city"){ cityCounter++;}
+
+
+
+            //check the cells around me
             for(int xx = -1; xx <= 1; xx = xx + 1)
             {
                 for(int yy = -1; yy <= 1; yy = yy + 1)
@@ -275,55 +284,394 @@ void ofApp::automaCellulare(){
                     else { ii = i + xx; }
                     
                     string cellType = cells[ii][j + yy].cellType;
-                    if ( cellType == "grass"){neighboursLand += 1;}
-                    else if ( cellType == "ice"){neighboursIce += 1;}
-                    else if ( cellType == "sand"){neighboursLand += 1;}
-                    else {neighboursOcean += 1;}
-                    
-                    
+                    if ( cellType == "grass"){nGrass += 1;}
+                    else if ( cellType == "ice"){nIce += 1;}
+                    else if ( cellType == "sand"){nSand += 1;}
+                    else if ( cellType == "ocean"){nOcean += 1;}
+                    else {nCity += 1;}
                 }
-                
             }
-            if(neighboursIce == 3 && ofRandom(1.0) > 0.5 ){
-                if(pollutionIncreasing){
-                    ofLog() << "ocean";
-                    cells[i][j].cellType = "ocean";
-//                    cells[i][j].cellColor = ofColor(12, 140, 175);
-                    cells[i][j].cellColor = ofColor(0, 0, 255);
-
-                }
-                else {
-                    if(iceCounter < maxNumberIce){
-                        ofLog() << "ice";
-                        cells[i][j].cellType = "ice";
-                        cells[i][j].cellColor = ofColor(255, 255, 255);
+            float chance = ofRandom(8.0);
+            
+            if(foodIncreasing){
+                if(currentType == "sand" && nGrass >= 2){
+                   if(chance < foodData[currentYear]){
+                       cout << "chance " + ofToString(chance) + " foodLvl " +  ofToString(foodData[currentYear]) << endl;
+                        cells[i][j].cellType = "grass";
+                        cells[i][j].cellColor = ofColor(0, 255, 0);
+                        cout << "make grass" << endl;
                     }
                 }
             }
             
-            if(neighboursIce == 3 && ofRandom(1.0) > 0.5 && (_c.cellType == "grass" || _c.cellType == "sand")){
-                if(extremePollution){
-                    ofLog() << "extreme pollution go ocean";
-                    cells[i][j].cellType = "ocean";
-//                    cells[i][j].cellColor = ofColor(12, 140, 175);
-                    cells[i][j].cellColor = ofColor(255, 0, 0);
-
-                }
-                else {
-                    ofLog() << "extreme pollution go graass";
-                    cells[i][j].cellType = "grass";
-                    cells[i][j].cellColor = ofColor(0, 255, 0);
+            if(!foodIncreasing){
+                if(currentType == "grass" && currentInitType == "sand"){
+                    if(chance < foodData[currentYear]/2   ){
+                        cells[i][j].cellType = "sand";
+                        cells[i][j].cellColor = ofColor(255,250,205);
+                        cout << "make sand" << endl;
                     }
                 }
+            }
+            
+            
+            //  ICE
+            
+//            if(nIce == 3 && ofRandom(1.0) > 0.5 ){
+//                if(pollutionIncreasing){
+//                    ofLog() << "ocean";
+//                    cells[i][j].cellType = "ocean";
+////                    cells[i][j].cellColor = ofColor(12, 140, 175);
+//                    cells[i][j].cellColor = ofColor(0, 0, 255);
+//
+//                }
+//                else {
+//                    if(iceCounter < maxNumberIce){
+//                        ofLog() << "ice";
+//                        cells[i][j].cellType = "ice";
+//                        cells[i][j].cellColor = ofColor(255, 255, 255);
+//                    }
+//                }
+//            }
+//
+//            if(nIce == 3 && ofRandom(1.0) > 0.5 && (_c.cellType == "grass" || _c.cellType == "sand")){
+//                if(extremePollution){
+//                    ofLog() << "extreme pollution go ocean";
+//                    cells[i][j].cellType = "ocean";
+////                    cells[i][j].cellColor = ofColor(12, 140, 175);
+//                    cells[i][j].cellColor = ofColor(255, 0, 0);
+//
+//                }
+//                else {
+//                    ofLog() << "extreme pollution go graass";
+//                    cells[i][j].cellType = "grass";
+//                    cells[i][j].cellColor = ofColor(0, 255, 0);
+//                    }
+//                }
             
             
             
         }
     }
     iceCounter = iceCounterTemp;
-    ofLog() << currentYear;
 }
 
+
+
+
+//--------------------------------------------------------------
+// Draw GUI
+//--------------------------------------------------------------
+void ofApp::drawGUI(){
+    //    myfont.drawString("Future Worlds", ofGetWidth()/2 - myfont.stringWidth("Future Wolrds")/2 - 25, 100);
+    //    ofDrawBitmapStringHighlight("point " + ofToString(mouseX) + " " + ofToString(mouseY) , 600, 600);
+
+    centreH = ofGetHeight()/2;
+    centreW = ofGetWidth()/2;
+    ofSetRectMode(OF_RECTMODE_CORNER);
+    ofFill();
+    ofSetColor(255, 255, 255);
+//    ofDrawEllipse(ofGetWidth() - 300 , ofGetHeight() - 50 , 50, 50);
+    
+    // timeline
+    ofDrawLine(centreW - 300 , ofGetHeight() - 50 , centreW + 300 , ofGetHeight() - 50);
+    ofDrawLine(centreW - 300 , ofGetHeight() - 50 + 5 , centreW - 300 , ofGetHeight() - 50 - 5);
+    ofDrawLine(centreW + 300 , ofGetHeight() - 50 + 5 , centreW + 300 , ofGetHeight() - 50 - 5);
+    
+    // timeline cursror
+    ofDrawEllipse(centreW - 300 + (currentYear * 3), ofGetHeight() - 50, 10,10);
+    
+    // Year
+    ofDrawBitmapStringHighlight(ofToString(currentYear + startYear) , centreW - 315 + (currentYear * 3), ofGetHeight() - 28);
+    ofDrawBitmapStringHighlight("1900", centreW - 300 , ofGetHeight() - 70);
+    ofDrawBitmapStringHighlight("2100", centreW + 270 , ofGetHeight() - 70);
+    
+    ofSetColor(255, 0, 0);
+    ofDrawEllipse(centreW - 300 + (maxPopYear * 3), ofGetHeight() - 50, 5,5);
+    ofSetColor(0, 255, 0);
+    ofDrawEllipse(centreW - 300 + (maxPulYear * 3), ofGetHeight() - 50, 5,5);
+    ofSetColor(255, 255, 0);
+    ofDrawEllipse(centreW - 300 + (maxIndYear * 3), ofGetHeight() - 50, 5,5);
+    
+    ofSetColor(255, 0, 0, 255);
+
+    
+//    ofDrawBitmapStringHighlight("Year:       " + ofToString(currentYear + startYear) , 50, 30);
+
+    // Data and Current Values
+    ofDrawBitmapStringHighlight("Population: " + ofToString(populationData[currentYear], 3) , 50, 50);
+    ofDrawBitmapStringHighlight("Resources:  " + ofToString(lifeExpData[currentYear], 3) , 50, 70);
+    
+    std::string flagStr = pollutionIncreasing ? "increasing" : "decresing";
+    std::string extPol = extremePollution ? " extreme!" : " __";
+
+
+    
+    ofDrawBitmapStringHighlight("Pollution:  " + flagStr + extPol, 50, 90);
+    ofDrawBitmapStringHighlight("Industry:   " + ofToString(industryData[currentYear], 3) , 50, 110);
+    ofDrawBitmapStringHighlight("Food:       " + ofToString(foodData[currentYear], 3) , 50, 130);
+    
+    
+    int currentHeight = ofGetHeight();
+    ofDrawBitmapStringHighlight("ice count:       " + ofToString(iceCounter) , 50, currentHeight - 20);
+    ofDrawBitmapStringHighlight("ocean count:       " + ofToString(oceanCounter) , 50, currentHeight - 40);
+    ofDrawBitmapStringHighlight("grass count:       " + ofToString(grassCounter) , 50, currentHeight - 60);
+    ofDrawBitmapStringHighlight("sand count:       " + ofToString(sandCounter) , 50, currentHeight - 80);
+    ofDrawBitmapStringHighlight("city count:       " + ofToString(cityCounter) , 50, currentHeight - 100);
+    
+    ofDrawBitmapStringHighlight( worldType, 50, currentHeight - 120);
+
+
+    
+    // Data Type color indicator
+    ofSetColor(255, 0, 0);
+    ofDrawEllipse(40, 45, 5,5);
+    ofSetColor(0, 255, 0);
+    ofDrawEllipse(40, 85, 5,5);
+    ofSetColor(255, 255, 0);
+    ofDrawEllipse(40, 105, 5,5);
+}
+
+void ofApp::exit(){
+
+}
+
+//--------------------------------------------------------------
+void ofApp::keyPressed(int key){
+    switch (key){
+        case ' ':
+            automaCellulare();
+            std::cout << "run cellure automata to update state of cells" << std::endl;
+            break;
+        case 'p':
+            pollutionIncreasing = !pollutionIncreasing;
+            extremePollution = !extremePollution;
+            std::cout << "pollution state flipped" << std::endl;
+            break;
+        case 'o':
+            populationIncreasing = !populationIncreasing;
+            std::cout << "population state flipped" << std::endl;
+            break;
+        case 's':
+            start = !start;
+            std::cout << "play pause" << std::endl;
+            break;
+            
+        case 'a':
+            animate = !animate;
+            std::cout << "animate" << std::endl;
+            break;
+            
+        case '1':
+            normSetup();
+            worldType ="Normal World";
+            break;
+            
+        case '2':
+            goodSetup();
+            worldType ="Good World";
+
+            break;
+            
+        case '3':
+            badSetup();
+            worldType ="Bad World";
+            break;
+            
+        case  '4':
+            speed = 200;
+            break;
+            
+        case  '5':
+            speed = 50;
+            break;
+            
+        case  'R':
+            resetSimulation();
+            break;
+
+    }
+}
+
+//--------------------------------------------------------------
+void ofApp::keyReleased(int key){
+
+}
+
+//--------------------------------------------------------------
+void ofApp::mouseMoved(int x, int y ){
+
+}
+
+//--------------------------------------------------------------
+void ofApp::mouseDragged(int x, int y, int button){
+
+}
+
+//--------------------------------------------------------------
+void ofApp::mousePressed(int x, int y, int button){
+
+}
+
+//--------------------------------------------------------------
+void ofApp::mouseReleased(int x, int y, int button){
+
+}
+
+//--------------------------------------------------------------
+void ofApp::mouseScrolled(int x, int y, float scrollX, float scrollY){
+
+}
+
+//--------------------------------------------------------------
+void ofApp::mouseEntered(int x, int y){
+
+}
+
+//--------------------------------------------------------------
+void ofApp::mouseExited(int x, int y){
+
+}
+
+//--------------------------------------------------------------
+void ofApp::windowResized(int w, int h){
+
+}
+
+//--------------------------------------------------------------
+void ofApp::gotMessage(ofMessage msg){
+
+}
+
+//--------------------------------------------------------------
+void ofApp::dragEvent(ofDragInfo dragInfo){
+
+}
+
+void ofApp::checkDataDirection() {
+    
+    int nextYear = currentYear + 1;
+    pollutionIncreasing = (ecoFootData[currentYear] < ecoFootData[nextYear] && ecoFootData[currentYear] > 0.1);
+    populationIncreasing = (populationData[currentYear] < populationData[nextYear] && populationData[currentYear] > 0.1);
+    foodIncreasing = (foodData[currentYear] < foodData[nextYear]);
+    industryIncreasing = (industryData[currentYear] < industryData[nextYear]);
+    resourcesIncreasing = (lifeExpData[currentYear] < lifeExpData[nextYear]);
+    extremePollution = (ecoFootData[currentYear] > 0.5);
+}
+
+void ofApp::loadCSVData(){
+    
+    if(normCsv.load("normal.csv")) {
+        for (int i = 0; i < 11; ++i) {
+            for (int j = 0; j < arraySize; j++) {
+                normData[i][j] = std::stof(normCsv[j+1][i]);
+                //std::cout << normData[i][j] << " ";
+            }
+            //std::cout << "next" << std::endl;
+        }
+        std::cout << "Normal Data Read" << std::endl;
+
+    }
+    else {
+        std::cout << "no file found?";
+    }
+    
+    if(goodCsv.load("good.csv")) {
+        for (int i = 0; i < 11; ++i) {
+            for (int j = 0; j < arraySize; j++) {
+                goodData[i][j] = std::stof(goodCsv[j+1][i]);
+            }
+        }
+        std::cout << "Good Data Read" << std::endl;
+
+    }
+    else {
+        std::cout << "no file found?";
+    }
+    
+    if(badCsv.load("bad.csv")) {
+        for (int i = 0; i < 11; ++i) {
+            for (int j = 0; j < arraySize; j++) {
+                badData[i][j] = std::stof(badCsv[j+1][i]);
+            }
+        }
+        std::cout << "Bad Data Read" << std::endl;
+
+    }
+    else {
+        std::cout << "no file found?";
+    }
+    
+}
+
+void ofApp::goodSetup(){
+    ecoFootData = goodData[9];
+    industryData = goodData[1];
+    foodData = goodData[2];
+    populationData = goodData[3];
+    lifeExpData = goodData[5];
+    setupMaxYear();
+    
+    cout << "good Setup" << endl;
+}
+
+void ofApp::badSetup(){
+    ecoFootData = badData[9];
+    industryData = badData[1];
+    foodData = badData[2];
+    populationData = badData[3];
+    lifeExpData = badData[5];
+    
+    setupMaxYear();
+    
+    cout << "bad Setup" << endl;
+}
+
+void ofApp::normSetup(){
+    ecoFootData = normData[9];
+    industryData = normData[1];
+    foodData = normData[2];
+    populationData = normData[3];
+    lifeExpData = normData[5];
+    //            for (int j = 0; j < arraySize; j++) {
+    //                std::cout << j << std::endl;
+    //                std::cout << ecoFootData[j] << std::endl;
+    //            }
+    setupMaxYear();
+    cout << "normal Setup" << endl;
+
+}
+
+void ofApp::variableSetup(){
+    pollutionIncreasing = false;
+    populationIncreasing = true;
+    extremePollution = false;
+    startYear = 1900;
+    endYear = 2100;
+    r1 = {-1*_PI, _PI};
+    r2 = {0.0, 640.0};
+    sphere.setRadius(128);
+    spherePlanet.setRadius(32);
+    rotationAngle = 0.0;
+}
+
+void ofApp::setupMaxYear(){
+    maxPopYear = distance(populationData, max_element(populationData, populationData + 200));
+    maxPulYear = distance(ecoFootData, max_element(ecoFootData, ecoFootData + 200));
+    maxIndYear = distance(industryData, max_element(industryData, industryData + 200));
+}
+
+void ofApp::resetSimulation(){
+    currentYear = 0;
+    populationPoly.clear();
+    pollutionPoly.clear();
+    foodPoly.clear();
+    industryPoly.clear();
+    lifeExpPoly.clear();
+    imageToGrid();
+    setCellSphereRadius();
+    cout << "Reset Simulation" << endl;
+}
 
 void ofApp::setCellSphereRadius(){
     float value = 8.0;
@@ -434,164 +782,4 @@ string ofApp::classifyCelltype(ofColor rgbColor, float imHeight, float j)
     else if (rgbColor.getBrightness() < 150.0f) {return"grass";}
     
     return "sand";
-}
-
-void ofApp::checkDataDirection() {
-    
-    int nextYear = currentYear + 1;
-    pollutionIncreasing = (pollutionData[currentYear] < pollutionData[nextYear] && pollutionData[currentYear] > 0.1);
-    populationIncreasing = (populationData[currentYear] < populationData[nextYear] && populationData[currentYear] > 0.1);
-    foodIncreasing = (foodData[currentYear] < foodData[nextYear]);
-    industryIncreasing = (industryData[currentYear] < industryData[nextYear]);
-    resourcesIncreasing = (resourceData[currentYear] < resourceData[nextYear]);
-    extremePollution = (pollutionData[currentYear] > 0.5);
-}
-
-//--------------------------------------------------------------
-// Draw GUI
-//--------------------------------------------------------------
-void ofApp::drawGUI(){
-    //    myfont.drawString("Future Worlds", ofGetWidth()/2 - myfont.stringWidth("Future Wolrds")/2 - 25, 100);
-    //    ofDrawBitmapStringHighlight("point " + ofToString(mouseX) + " " + ofToString(mouseY) , 600, 600);
-
-    centreH = ofGetHeight()/2;
-    centreW = ofGetWidth()/2;
-    ofSetRectMode(OF_RECTMODE_CORNER);
-    ofFill();
-    ofSetColor(255, 255, 255);
-//    ofDrawEllipse(ofGetWidth() - 300 , ofGetHeight() - 50 , 50, 50);
-    
-    // timeline
-    ofDrawLine(centreW - 300 , ofGetHeight() - 50 , centreW + 300 , ofGetHeight() - 50);
-    ofDrawLine(centreW - 300 , ofGetHeight() - 50 + 5 , centreW - 300 , ofGetHeight() - 50 - 5);
-    ofDrawLine(centreW + 300 , ofGetHeight() - 50 + 5 , centreW + 300 , ofGetHeight() - 50 - 5);
-    
-    // timeline cursror
-    ofDrawEllipse(centreW - 300 + (currentYear * 3), ofGetHeight() - 50, 10,10);
-    
-    // Year
-    ofDrawBitmapStringHighlight(ofToString(currentYear + startYear) , centreW - 315 + (currentYear * 3), ofGetHeight() - 28);
-    ofDrawBitmapStringHighlight("1900", centreW - 300 , ofGetHeight() - 70);
-    ofDrawBitmapStringHighlight("2100", centreW + 270 , ofGetHeight() - 70);
-    
-    ofSetColor(255, 0, 0);
-    ofDrawEllipse(centreW - 300 + (maxPopYear * 3), ofGetHeight() - 50, 5,5);
-    ofSetColor(0, 255, 0);
-    ofDrawEllipse(centreW - 300 + (maxPulYear * 3), ofGetHeight() - 50, 5,5);
-    ofSetColor(255, 255, 0);
-    ofDrawEllipse(centreW - 300 + (maxIndYear * 3), ofGetHeight() - 50, 5,5);
-    
-    ofSetColor(255, 0, 0, 255);
-
-    
-//    ofDrawBitmapStringHighlight("Year:       " + ofToString(currentYear + startYear) , 50, 30);
-
-    // Data and Current Values
-    ofDrawBitmapStringHighlight("Population: " + ofToString(populationData[currentYear], 3) , 50, 50);
-    ofDrawBitmapStringHighlight("Resources:  " + ofToString(resourceData[currentYear], 3) , 50, 70);
-    
-    std::string flagStr = pollutionIncreasing ? "increasing" : "decresing";
-    std::string extPol = extremePollution ? " extreme!" : " __";
-
-
-    
-    ofDrawBitmapStringHighlight("Pollution:  " + flagStr + extPol, 50, 90);
-    ofDrawBitmapStringHighlight("Industry:   " + ofToString(industryData[currentYear], 3) , 50, 110);
-    ofDrawBitmapStringHighlight("Food:       " + ofToString(foodData[currentYear], 3) , 50, 130);
-    
-    // Data Type color indicator
-    ofSetColor(255, 0, 0);
-    ofDrawEllipse(40, 45, 5,5);
-    ofSetColor(0, 255, 0);
-    ofDrawEllipse(40, 85, 5,5);
-    ofSetColor(255, 255, 0);
-    ofDrawEllipse(40, 105, 5,5);
-}
-
-//--------------------------------------------------------------
-void ofApp::exit(){
-
-}
-
-//--------------------------------------------------------------
-void ofApp::keyPressed(int key){
-    switch (key){
-        case ' ':
-            automaCellulare();
-            std::cout << "run cellure automata to update state of cells" << std::endl;
-            break;
-        case 'p':
-            pollutionIncreasing = !pollutionIncreasing;
-            extremePollution = !extremePollution;
-            std::cout << "pollution state flipped" << std::endl;
-            break;
-        case 'o':
-            populationIncreasing = !populationIncreasing;
-            std::cout << "population state flipped" << std::endl;
-            break;
-        case 's':
-            start = !start;
-            std::cout << "play pause" << std::endl;
-            break;
-            
-        case 'a':
-            animate = !animate;
-            std::cout << "animate" << std::endl;
-            break;
-    }
-}
-
-//--------------------------------------------------------------
-void ofApp::keyReleased(int key){
-
-}
-
-//--------------------------------------------------------------
-void ofApp::mouseMoved(int x, int y ){
-
-}
-
-//--------------------------------------------------------------
-void ofApp::mouseDragged(int x, int y, int button){
-
-}
-
-//--------------------------------------------------------------
-void ofApp::mousePressed(int x, int y, int button){
-
-}
-
-//--------------------------------------------------------------
-void ofApp::mouseReleased(int x, int y, int button){
-
-}
-
-//--------------------------------------------------------------
-void ofApp::mouseScrolled(int x, int y, float scrollX, float scrollY){
-
-}
-
-//--------------------------------------------------------------
-void ofApp::mouseEntered(int x, int y){
-
-}
-
-//--------------------------------------------------------------
-void ofApp::mouseExited(int x, int y){
-
-}
-
-//--------------------------------------------------------------
-void ofApp::windowResized(int w, int h){
-
-}
-
-//--------------------------------------------------------------
-void ofApp::gotMessage(ofMessage msg){
-
-}
-
-//--------------------------------------------------------------
-void ofApp::dragEvent(ofDragInfo dragInfo){
-
 }
