@@ -30,6 +30,9 @@ void ofApp::setup(){
     
     placemarkerImage.load("photos/Cairo/Cairo_neutral_2095.png");
 
+    initCityBools();
+    
+
     std::cout << "set up finished"  << std::endl;
 }
 
@@ -65,6 +68,8 @@ void ofApp::update(){
             }
         }
     }
+
+    loadImageForYear(worldType);
 }
 
 void ofApp::drawDataLegend(){
@@ -158,8 +163,8 @@ void ofApp::draw(){
     
     //drawGUI();
     //dataPlotter();
-    //drawDataLegend();
-
+    //drawDataLegend
+    drawCityImages()
 }
 
 void ofApp::drawPlanets() {
@@ -763,6 +768,16 @@ void ofApp::keyPressed(int key){
             moveToGlobe = !moveToGlobe;
             isDrifting = !isDrifting;
             break;
+        // for city images
+        case 'z':
+            bShowImageNY = !bShowImageNY;
+            break;
+        case 'x':
+            bShowImageCairo = !bShowImageCairo;
+            break;
+        case 'c':
+            bShowImageMexico = !bShowImageMexico;
+            break;
     }
 }
 
@@ -1138,4 +1153,73 @@ void ofApp::updatePlanets() {
     pluto.pos3D.y = pluto.orbitRadiusY * sin(plutoRad);
     pluto.pos3D.z = -25;
     pluto.pos3D.rotate(pluto.inclination, ofVec3f(1, 0, 0));
+}
+
+
+
+void ofApp::loadImageForYear(std::string condition) {
+    string condition_conv = convertWorld(condition);
+    int realCurrentYear = currentYear + startYear;
+    std::vector<std::string> cityNames = { "New York", "Mexico City", "Cairo" };
+    for (const auto& cityName : cityNames) {
+        std::string imageName = "photos/" + cityName + "/" + cityName + "_" 
+            + condition_conv + "_" + std::to_string(realCurrentYear) + ".png";
+
+        if (ofFile::doesFileExist(imageName)) {
+            if (cityName == "New York") {
+                cityImgNY.load(imageName);
+                cityImgNY.resize(300, 300);
+            }
+            else if (cityName == "Mexico City") {
+                cityImgMexico.load(imageName);
+                cityImgMexico.resize(300, 300);
+            }
+            else if (cityName == "Cairo") {
+                cityImgCairo.load(imageName);
+                cityImgCairo.resize(300, 300);
+            }
+            else {
+                std::cout << "Unknown city: " << cityName << std::endl;
+            }
+        }
+        else {
+        }
+    }
+}
+
+std::string ofApp::convertWorld(const std::string& input) {
+    std::map<std::string, std::string> worldMap = {
+        {"Good World", "good"},
+        {"Normal World", "neutral"},
+        {"Bad World", "bad"}
+    };
+
+    auto it = worldMap.find(input);
+    if (it != worldMap.end()) {
+        return it->second;
+    }
+    else {
+        return "unknown"; 
+    }
+}
+
+void ofApp::drawCityImages() {
+    if (bShowImageNY) {
+        ofSetColor(255);
+        cityImgNY.draw(0, 0);
+    }
+    if (bShowImageMexico) {
+        ofSetColor(255);
+        cityImgMexico.draw(300, 300);
+    }
+    if (bShowImageCairo) {
+        ofSetColor(255);
+        cityImgCairo.draw(600, 600);
+    }
+}
+
+void ofApp::initCityBools(){
+    bShowImageNY = false;
+    bShowImageMexico = false;
+    bShowImageCairo = false;
 }

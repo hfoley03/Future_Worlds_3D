@@ -248,14 +248,6 @@ class ofApp : public ofBaseApp{
     ofPolyline industryPoly;
     ofPolyline lifeExpPoly;
     ofVec2f origin;
-
-    ofImage cityImgMexico;
-    ofImage cityImgNY;
-    ofImage cityImgGreenland;
-    bool bShowImageMexico; 
-    bool bShowImageNY; 
-    bool bShowImageGreenland; 
-
     
     ofColor grassColors[8] = {
         ofColor(53, 78, 31),
@@ -306,6 +298,19 @@ class ofApp : public ofBaseApp{
     ofImage currentPic;
 
 
+    //Eray
+    
+    void loadImageForYear(std::string condition);
+    std::string convertWorld(const std::string& input);
+    void drawCityImages();
+    void initCityBools();
+    
+    ofImage cityImgMexico;
+    ofImage cityImgNY;
+    ofImage cityImgCairo;
+    bool bShowImageMexico;
+    bool bShowImageNY;
+    bool bShowImageCairo;
 
     
 //    float pollutionData[200] = {
