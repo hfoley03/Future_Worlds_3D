@@ -329,6 +329,19 @@ class ofApp : public ofBaseApp{
     vector<string> cities;
     int currentCityIndex;
     
+    ofTrueTypeFont titleFont;
+    ofTrueTypeFont worldMessageFont;
+    
+    vector<string> worldMessages;
+    ofRectangle worldSwapButton;
+    int currentWorldIndex;
+    
+    void worldMessageDisplay();
+    void titleDisplay();
+
+
+    
+    
     //Eray
     
     void loadImageForYear(std::string condition);

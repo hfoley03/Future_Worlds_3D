@@ -77,10 +77,10 @@ void ofApp::update(){
 void ofApp::draw(){
     //worldImage.draw(0,0);
     ofSetColor(255, 255, 255, 255);
-    ofDrawLine(0, centreH, centreW*2, centreH);
-    ofDrawLine(centreW, 0, centreW, centreH*2);
+//    ofDrawLine(0, centreH, centreW*2, centreH);
+//    ofDrawLine(centreW, 0, centreW, centreH*2);
 
-    
+
     
     //placemarkerImage.draw(0,0);
     cam.begin();
@@ -91,17 +91,14 @@ void ofApp::draw(){
     cam.end();
 
     //cellArrayToImage();
-    
     drawGUI();
     dataPlotter();
     drawDataLegend();
-////
-//
     drawCityImages();
     citySelect();
+    
+
 }
-
-
 
 void ofApp::myGraphCols(){
     blue.set( 57,96,169);
@@ -209,8 +206,8 @@ void ofApp::drawDataLegend(){
     ofVec2f originL;
     originL.set(origin.x + 20 , origin.y + stringH/2 + 300);
     
-    ofSetColor(255, 0, 0);
-    ofDrawCircle(originL, 5);
+    //ofSetColor(255, 0, 0);
+    //ofDrawCircle(originL, 5);
     
     float textX;
     
@@ -288,15 +285,6 @@ void ofApp::earthSpinning(){
 
 
 }
-
-//    ofPushMatrix();
-//    // Translate to the top right quadrant
-//    ofTranslate(ofGetWidth() / 2, ofGetHeight() / 2);
-//    // Adjust the position further if necessary
-//    ofTranslate(-spherePlanet.getRadius(), -spherePlanet.getRadius());
-//    // Draw the second sphere
-//    spherePlanet.draw();
-//    ofPopMatrix();
 
 void ofApp::imageToGrid(){
         
@@ -616,16 +604,9 @@ void ofApp::automaCellulare(){
     iceCounter = iceCounterTemp;
 }
 
-
-
-
-//--------------------------------------------------------------
-// Draw GUI
-//--------------------------------------------------------------
 void ofApp::drawGUI(){
     ofSetColor(255, 0, 255);
-
-    myfont.drawString("Future Worlds", ofGetWidth()/2 - myfont.stringWidth("Future Wolrds")/2 - 25, 100);
+    titleDisplay();
     ofDrawBitmapStringHighlight("point " + ofToString(mouseX) + " / " + ofToString(ofGetWidth())
                                 + " "  + ofToString(mouseY) + " / " + ofToString(ofGetHours()), 600, 600);
 
@@ -820,7 +801,27 @@ void ofApp::mousePressed(int x, int y, int button){
     if (rightArrowBox.inside(x, y)) {
         cout << "Right city clicked!" << endl;
         currentCityIndex = (currentCityIndex + 1) % cities.size();
-
+    }
+    
+    
+    if(worldSwapButton.inside(x,y)){
+        cout << "WorldSwap clicked!" << endl;
+        currentWorldIndex++;
+        if(currentWorldIndex > 2){
+            currentWorldIndex = 0;
+        }
+        if(currentWorldIndex == 0){
+            normSetup();
+            worldType ="Normal World";
+        }
+        else if(currentWorldIndex == 1){
+            goodSetup();
+            worldType ="Good World";
+        }
+        else if(currentWorldIndex == 2){
+            badSetup();
+            worldType ="Bad World";
+        }
     }
 }
 
@@ -974,6 +975,7 @@ void ofApp::variableSetup(){
     currentCityIndex = 0;
 //    cities = {"New York", "Cairo", "Lagos", "Mexico"};
     cities = {"NEW YORK", "CAIRO", "LAGOS", "MEXICO"};
+    worldMessages = {"what if we do nothing?","whats the best we can hope for?", "whats the worst that could happen?"};
 
 
 }
@@ -1194,7 +1196,10 @@ void ofApp::fontSetup(){
     ecoFootText.load(fontname, 18);
     industryText.load(fontname, 18);
     timelineText.load(fontname, 12);
-    cityFont.load(fontname, 24);
+    cityFont.load(fontname, 18);
+    
+    titleFont.load(fontname, 48);
+    worldMessageFont.load(fontname, 18);
 }
 
 void ofApp::loadImageForYear(std::string condition) {
@@ -1276,7 +1281,7 @@ void ofApp::citySelect(){
     //ofDrawRectangle(edgeOffset, centreH + imageSize/2 + edgeOffset/2, imageSize, 60);
     
     float rectWidth = imageSize;
-    float rectHeight = 60;
+    float rectHeight = 40;
     float triangleSize = rectHeight;
     float triangleHeight = sqrt(3.0) / 2.0 * triangleSize;
     
@@ -1306,5 +1311,28 @@ void ofApp::citySelect(){
     float cityX = edgeOffset + rectWidth / 2 - cityBox.width / 2;
     float cityY = centreH + imageSize / 2 + edgeOffset + + cityBox.height / 2;
     cityFont.drawString(currentCity, cityX, cityY);
+}
+
+void ofApp::worldMessageDisplay(){
+
+}
+void ofApp::titleDisplay(){
+    ofSetColor(255);
+    string titleString = "Future Worlds";
+    ofRectangle titleBox = titleFont.getStringBoundingBox(titleString, 0, 0);
+    float titleX = centreW - titleBox.width/2;
+    float titley = edgeOffset*2 - titleBox.height/2;
+    titleFont.drawString(titleString, titleX, titley);
+    
+    ofSetColor(255);
+    string worldMessageString = worldMessages[currentWorldIndex];
+    ofRectangle worldMessageBox = worldMessageFont.getStringBoundingBox(worldMessageString, 0, 0);
+    float wMesgX = centreW - worldMessageBox.width/2;
+    float wMesgY = edgeOffset*2 + titleBox.height;
+    
+    worldMessageFont.drawString(worldMessageString, wMesgX, wMesgY);
+    worldSwapButton.set(titleX, titley - titleBox.height ,titleBox.width,titleBox.height);
+    
+    //ofDrawRectangle(worldSwapButton);
 }
 
