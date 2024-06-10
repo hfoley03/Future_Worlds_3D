@@ -12,6 +12,7 @@
 class Cell {
 public:
     ofColor cellColor;
+    ofColor initCellcolor;
     string cellType;
     string initCellType;
     ofVec3f driftPos;
@@ -92,12 +93,23 @@ class ofApp : public ofBaseApp{
     ofTrueTypeFont foodText;
     ofTrueTypeFont ecoFootText;
     ofTrueTypeFont industryText;
+    ofTrueTypeFont timelineText;
+    
+    void fontSetup();
     
     ofRectangle popRect;
     ofRectangle lifeExpRect;
     ofRectangle foodRect;
     ofRectangle ecoFootRect;
     ofRectangle industryRect;
+    
+    ofVec2f popCirc1;
+    ofVec2f lifeExpCirc1;
+    ofVec2f foodCirc1;
+    ofVec2f ecoFootCirc1;
+    ofVec2f industryCirc1;
+    
+    void dataCirc1Setup();
     
     ofColor popColor;
     ofColor lifeExpColor;
@@ -154,7 +166,6 @@ class ofApp : public ofBaseApp{
     //const double R = (256 - 16)/(2 * _PI); // 203.718
     const double R = (640 - 640*(16/256))/(2 * _PI); // 203.718
 
-    
     ofSpherePrimitive sphere;
     ofSpherePrimitive spherePlanet;
 
@@ -224,6 +235,9 @@ class ofApp : public ofBaseApp{
     
     float centreH;
     float centreW;
+    float edgeOffset = 60;
+    int imageSize = 300;
+
     
     // animation
     bool moveToGlobe = false;
@@ -298,6 +312,36 @@ class ofApp : public ofBaseApp{
     ofImage currentPic;
 
 
+    void citySelect();
+    
+    ofRectangle leftArrowBox;
+    ofRectangle rightArrowBox;
+    
+    ofVec2f leftTriangleA;
+    ofVec2f leftTriangleB;
+    ofVec2f leftTriangleC;
+
+    ofVec2f rightTriangleA;
+    ofVec2f rightTriangleB;
+    ofVec2f rightTriangleC;
+    
+    ofTrueTypeFont cityFont;
+    vector<string> cities;
+    int currentCityIndex;
+    
+    ofTrueTypeFont titleFont;
+    ofTrueTypeFont worldMessageFont;
+    
+    vector<string> worldMessages;
+    ofRectangle worldSwapButton;
+    int currentWorldIndex;
+    
+    void worldMessageDisplay();
+    void titleDisplay();
+
+
+    
+    
     //Eray
     
     void loadImageForYear(std::string condition);
