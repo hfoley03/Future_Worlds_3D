@@ -9,6 +9,9 @@
 #include <set>
 #include <tuple>
 
+#define PORT 8000
+
+
 class Cell {
 public:
     ofColor cellColor;
@@ -141,8 +144,15 @@ class ofApp : public ofBaseApp{
     void setCellSphereRadius();
     void drawGUI();
     void checkDataDirection();
+    
+    // OSC
     void sendOsc();
-    void receiveOsc();
+    //void receiveOsc();
+    
+    ofxOscReceiver oscIn;
+    ofxOscSender oscOut;
+    ofxOscMessage oscMessage;
+    
     void variableSetup();
     void dataPlotter();
 
@@ -244,6 +254,15 @@ class ofApp : public ofBaseApp{
     bool isDrifting = true;
     bool areSpheresInPosition = false;
     bool checkSpheresInPosition(float threshold);
+    float fadeInOut = 255.0f;
+    float fadeValue = 0.0f;
+    float startTime;
+    float duration;
+    bool isTimerRunning;
+    bool incrementing;
+    
+    float transitionStartTime = 0.0f;
+    float transitionDuration = 3.0f;
     
     // other planets
     Planet mars;

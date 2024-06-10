@@ -5,7 +5,7 @@ using namespace std;
 
 //--------------------------------------------------------------
 void ofApp::setup(){
-    ofDisableAlphaBlending();
+    ofEnableAlphaBlending();
     ofEnableDepthTest();
 //    light.enable();
 //    light.setPosition(ofVec3f(100,100,200));
@@ -29,6 +29,10 @@ void ofApp::setup(){
 
     initCityBools();
     
+    startTime = 0;
+    float transitionStartTime = 0.0f;
+    float transitionDuration = 3.0f;
+    fadeValue = 0.0f;
 
     std::cout << "set up finished"  << std::endl;
 }
@@ -40,7 +44,8 @@ void ofApp::update(){
     centreW = ofGetWidth()/2;
     updatePlanets();
 
-    
+    fadeInOut =255.0f * fadeValue;
+    //cout << fadeInOut << endl;
     if(currentYear == 199){ start = false;}
 
     if(start){
@@ -49,16 +54,29 @@ void ofApp::update(){
             automaCellulare();
             checkDataDirection();
             updatePlotter();
+            sendOsc();
             currentYear += 1;
             lastMinute = now;
         }
     }
     
+    float currentTime = ofGetElapsedTimef();
+    float timeSinceStart = currentTime - transitionStartTime;
+    if (moveToGlobe) {
+        fadeValue = ofClamp(timeSinceStart / transitionDuration, 0.0f, 1.0f);
+    } else {
+        fadeValue = ofClamp(1.0f - (timeSinceStart / transitionDuration), 0.0f, 1.0f);
+    }
+    
+    cout << fadeValue << endl;
+    
+
+    
     if(isDrifting){
         for (int i = 0; i < 80; i++) {
             for (int j = 0; j < 80; j++) {
                 if (moveToGlobe) {
-                    cells[i][j].driftPos.interpolate(cells[i][j].pos3D, 0.1f);
+                    cells[i][j].driftPos.interpolate(cells[i][j].pos3D, 0.05f);
                 } else {
                     cells[i][j].driftPos += cells[i][j].velocity;
                 }
@@ -186,10 +204,10 @@ void ofApp::dataPlotter(){
         
         
     }
-    ofSetColor(50);
+    ofSetColor(50,50,50, fadeInOut);
     //ofDrawRectRounded(origin.x, centreH + 10 - (plotHeight/2), plotWidth, plotHeight + 30 , 25);
     ofDrawRectangle(origin.x, origin.y, plotWidth, plotHeight);
-    ofSetColor(200);
+    ofSetColor(200,200,200, fadeInOut);
     int borderOffset = 10;
     ofDrawRectangle(origin.x - borderOffset, origin.y - borderOffset, plotWidth + borderOffset*2, plotHeight + borderOffset*2);
 
@@ -213,28 +231,28 @@ void ofApp::drawDataLegend(){
     
     // Population
     textX = rightMargin - popText.getStringBoundingBox("Population", 0, 0).width;
-    ofSetColor(popColor);
+    ofSetColor(popColor, fadeInOut);
     popText.drawString("Population", textX, originL.y + stringH);
     
     // Life Expectancy
     textX = rightMargin - lifeExpText.getStringBoundingBox("Life Expectancy", 0, 0).width;
-    ofSetColor(lifeExpColor);
+    ofSetColor(lifeExpColor, fadeInOut);
     lifeExpText.drawString("Life Expectancy", textX, originL.y + stringH*2);
 
     // Eco Foot Print
     textX = rightMargin - ecoFootText.getStringBoundingBox("Eco Foot Print", 0, 0).width;
-    ofSetColor(ecoFootColor);
+    ofSetColor(ecoFootColor, fadeInOut);
 
     ecoFootText.drawString("Eco Foot Print", textX, originL.y + stringH*3);
 
     // Food
     textX = rightMargin - foodText.getStringBoundingBox("Food", 0, 0).width;
-    ofSetColor(foodColor);
+    ofSetColor(foodColor, fadeInOut);
     foodText.drawString("Food", textX, originL.y + stringH*4);
 
     // Industry
     textX = rightMargin - industryText.getStringBoundingBox("Industry", 0, 0).width;
-    ofSetColor(industryColor);
+    ofSetColor(industryColor, fadeInOut);
     industryText.drawString("Industry", textX, originL.y + stringH*5);
 
     popRect = popText.getStringBoundingBox("Population", textX, originL.y + stringH);
@@ -276,7 +294,7 @@ void ofApp::earthSpinning(){
     if(checkSpheresInPosition(1.0f)){
         sphere.draw();
     }
-    
+        
     cellArrayToImage3D();
     //ofDrawLine(256+20,  ofGetHeight()/2 - 128, 0, cells[40][40].pos3D.x, cells[40][40].pos3D.y, cells[40][40].pos3D.z);
 
@@ -607,13 +625,13 @@ void ofApp::automaCellulare(){
 void ofApp::drawGUI(){
     ofSetColor(255, 0, 255);
     titleDisplay();
-    ofDrawBitmapStringHighlight("point " + ofToString(mouseX) + " / " + ofToString(ofGetWidth())
-                                + " "  + ofToString(mouseY) + " / " + ofToString(ofGetHours()), 600, 600);
+//    ofDrawBitmapStringHighlight("point " + ofToString(mouseX) + " / " + ofToString(ofGetWidth())
+//                                + " "  + ofToString(mouseY) + " / " + ofToString(ofGetHours()), 600, 600);
 
 
     ofSetRectMode(OF_RECTMODE_CORNER);
     ofFill();
-    ofSetColor(255, 255, 255);
+    ofSetColor(255, 255, 255, fadeInOut);
 //    ofDrawEllipse(ofGetWidth() - 300 , ofGetHeight() - 50 , 50, 50);
     
 
@@ -624,7 +642,7 @@ void ofApp::drawGUI(){
     timelineText.drawString(ofToString(currentYear + startYear) , centreW - 315 + (currentYear * 3), ofGetHeight() - 28);
 
     // timeline
-    ofSetColor(255, 255, 255, 150);
+    ofSetColor(255, 255, 255, 150*fadeValue);
     ofDrawLine(centreW - 300 , ofGetHeight() - 50 ,     centreW + 300 , ofGetHeight() - 50);
     ofDrawLine(centreW - 300 , ofGetHeight() - 50 + 5 , centreW - 300 , ofGetHeight() - 50 - 5);
     ofDrawLine(centreW + 300 , ofGetHeight() - 50 + 5 , centreW + 300 , ofGetHeight() - 50 - 5);
@@ -632,11 +650,11 @@ void ofApp::drawGUI(){
     // timeline cursror
     ofDrawEllipse(centreW - 300 + (currentYear * 3), ofGetHeight() - 50, 10,10);
     
-    ofSetColor(255, 0, 0);
+    ofSetColor(255, 0, 0, fadeInOut);
     ofDrawEllipse(centreW - 300 + (maxPopYear * 3), ofGetHeight() - 50, 5,5);
-    ofSetColor(0, 255, 0);
+    ofSetColor(0, 255, 0, fadeInOut);
     ofDrawEllipse(centreW - 300 + (maxPulYear * 3), ofGetHeight() - 50, 5,5);
-    ofSetColor(255, 255, 0);
+    ofSetColor(255, 255, 0, fadeInOut);
     ofDrawEllipse(centreW - 300 + (maxIndYear * 3), ofGetHeight() - 50, 5,5);
     
 //    ofSetColor(255, 0, 0, 255);
@@ -682,6 +700,7 @@ void ofApp::exit(){
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
+    
     switch (key){
         case ' ':
             automaCellulare();
@@ -734,6 +753,7 @@ void ofApp::keyPressed(int key){
             resetSimulation();
             break;
         case 'M':
+            transitionStartTime = ofGetElapsedTimef();
             moveToGlobe = !moveToGlobe;
             break;
         // for city images
@@ -973,7 +993,8 @@ void ofApp::variableSetup(){
     spherePlanet.setRadius(32);
     rotationAngle = 0.0;
     currentCityIndex = 0;
-//    cities = {"New York", "Cairo", "Lagos", "Mexico"};
+    oscOut.setup("localhost", 8000);    //OSC
+    oscIn.setup(8000);                  //OSC
     cities = {"NEW YORK", "CAIRO", "LAGOS", "MEXICO"};
     worldMessages = {"what if we do nothing?","whats the best we can hope for?", "whats the worst that could happen?"};
 
@@ -1254,7 +1275,10 @@ void ofApp::drawCityImages() {
     ofSetColor(200);
    
     int borderOffset = 10;
-    ofDrawRectangle(origin.x - borderOffset, origin.y - borderOffset, plotWidth + borderOffset*2, plotHeight + borderOffset*2); ///??? not showing ??
+    ofDrawRectangle(origin.x - borderOffset, origin.y - borderOffset, plotWidth + borderOffset*2, plotHeight + borderOffset*2);
+    
+    ofSetColor(255, 255, 255, fadeInOut);
+
         
         if (bShowImageNY) {
             cityImgNY.draw(edgeOffset, ofGetHeight()/2 - imageSize/2);
@@ -1276,7 +1300,6 @@ void ofApp::initCityBools(){
 
 void ofApp::citySelect(){
     // Draw the red rectangle
-    ofSetColor(255, 0, 0);
     
     //ofDrawRectangle(edgeOffset, centreH + imageSize/2 + edgeOffset/2, imageSize, 60);
     
@@ -1293,14 +1316,14 @@ void ofApp::citySelect(){
     rightTriangleB.set(edgeOffset + rectWidth - triangleHeight / 2 - 20, centreH + imageSize / 2 + edgeOffset/2 + rectHeight / 2 - triangleSize / 2);
     rightTriangleC.set(edgeOffset + rectWidth - triangleHeight / 2 - 20, centreH + imageSize / 2 + edgeOffset/2 + rectHeight / 2 + triangleSize / 2);
     
-    ofSetColor(200);
+    ofSetColor(200,200,200, (int)fadeInOut);
     ofDrawTriangle(leftTriangleA, leftTriangleB, leftTriangleC);
     ofDrawTriangle(rightTriangleA, rightTriangleB, rightTriangleC);
     
     leftArrowBox.set(leftTriangleA.x, leftTriangleB.y, triangleHeight, triangleSize);
     rightArrowBox.set(rightTriangleB.x, rightTriangleB.y, triangleHeight, triangleSize);
 
-    ofSetColor(255); // White color for the box
+    ofSetColor(255, fadeInOut); // White color for the box
 //    ofNoFill();
 //    ofDrawRectangle(leftArrowBox);
 //    ofDrawRectangle(rightArrowBox);
@@ -1316,6 +1339,7 @@ void ofApp::citySelect(){
 void ofApp::worldMessageDisplay(){
 
 }
+
 void ofApp::titleDisplay(){
     ofSetColor(255);
     string titleString = "Future Worlds";
@@ -1324,7 +1348,7 @@ void ofApp::titleDisplay(){
     float titley = edgeOffset*2 - titleBox.height/2;
     titleFont.drawString(titleString, titleX, titley);
     
-    ofSetColor(255);
+    ofSetColor(255, fadeInOut);
     string worldMessageString = worldMessages[currentWorldIndex];
     ofRectangle worldMessageBox = worldMessageFont.getStringBoundingBox(worldMessageString, 0, 0);
     float wMesgX = centreW - worldMessageBox.width/2;
@@ -1336,3 +1360,36 @@ void ofApp::titleDisplay(){
     //ofDrawRectangle(worldSwapButton);
 }
 
+
+void ofApp::sendOsc(){
+    //timeSent = ofGetElapsedTimef();
+    ofxOscMessage m1;
+    m1.setAddress("/pop");
+
+    
+    ofxOscMessage m2;
+    m2.setAddress("/pul");
+
+    
+    ofxOscMessage m3;
+    m3.setAddress("/ind");
+
+    
+    if(currentYear < 2098){
+        m1.addFloatArg(populationData[currentYear]);
+        m2.addFloatArg(ecoFootData[currentYear]);
+        m3.addFloatArg(industryData[currentYear]);
+    }
+    else {
+        m1.addFloatArg(0.0);
+        m2.addFloatArg(0.0);
+        m3.addFloatArg(0.0);
+    }
+    
+    oscOut.sendMessage(m3);
+    oscOut.sendMessage(m1);
+    oscOut.sendMessage(m2);
+
+    
+    
+}
