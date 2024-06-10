@@ -12,6 +12,7 @@
 class Cell {
 public:
     ofColor cellColor;
+    ofColor initCellcolor;
     string cellType;
     string initCellType;
     ofVec3f driftPos;
@@ -165,7 +166,6 @@ class ofApp : public ofBaseApp{
     //const double R = (256 - 16)/(2 * _PI); // 203.718
     const double R = (640 - 640*(16/256))/(2 * _PI); // 203.718
 
-    
     ofSpherePrimitive sphere;
     ofSpherePrimitive spherePlanet;
 

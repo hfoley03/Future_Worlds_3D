@@ -11,7 +11,9 @@ void ofApp::setup(){
 //    light.setPosition(ofVec3f(100,100,200));
 //    light.lookAt(ofVec3f(0,0,0));
  //   myfont.load("fonts/LEDLIGHT.otf", 60);
-    
+    ofSetVerticalSync(true);
+    ofSetFrameRate(50);
+
     fontSetup();
     otherPlanetsSetup();
     myGraphCols();
@@ -30,9 +32,6 @@ void ofApp::setup(){
 
     std::cout << "set up finished"  << std::endl;
 }
-
-
-
 
 //--------------------------------------------------------------
 void ofApp::update(){
@@ -54,17 +53,23 @@ void ofApp::update(){
         }
     }
     
-    for (int i = 0; i < 80; i++) {
-        for (int j = 0; j < 80; j++) {
-            if (moveToGlobe) {
-                cells[i][j].driftPos.interpolate(cells[i][j].pos3D, 0.01f);
-            } else {
-                cells[i][j].driftPos += cells[i][j].velocity;
+    if(isDrifting){
+        for (int i = 0; i < 80; i++) {
+            for (int j = 0; j < 80; j++) {
+                if (moveToGlobe) {
+                    cells[i][j].driftPos.interpolate(cells[i][j].pos3D, 0.1f);
+                } else {
+                    cells[i][j].driftPos += cells[i][j].velocity;
+                }
             }
         }
     }
 
     loadImageForYear(worldType);
+    
+    float fps = ofGetFrameRate();
+    std::string fpsString = "FPS: " + std::to_string(fps);
+    ofSetWindowTitle(fpsString);
 }
 
 void ofApp::drawDataLegend(){
@@ -148,18 +153,16 @@ void ofApp::draw(){
 
     drawPlanets();
     earthSpinning();
-    
+
     cam.end();
 
-//    cellArrayToImage();
+    //cellArrayToImage();
     
     drawGUI();
-    dataPlotter();
+      dataPlotter();
     drawDataLegend();
-
-    //drawGUI();
-    //dataPlotter();
-    //drawDataLegend
+////
+//
     drawCityImages();
 }
 
@@ -208,7 +211,6 @@ void ofApp::dataPlotter(){
         }
         ofDrawCircle(populationPoly.getVertices()[0], 5);
         ofDrawCircle(populationPoly.getVertices().back(), 5);
-        cout << popCirc1 << endl;
         populationPoly.draw();
 
         if (lifeExpSelected) {
@@ -259,11 +261,6 @@ void ofApp::dataPlotter(){
  
 }
 
-void ofApp::dataCirc1Setup(){
-    
-}
-
-
 void ofApp::updatePlotter(){
     ofSetLineWidth(3);
 
@@ -275,11 +272,11 @@ void ofApp::updatePlotter(){
     industryPoly.addVertex( xx , origin.y - (industryData[currentYear] * graphPolyHeight + 10));
     lifeExpPoly.addVertex( xx , origin.y - (lifeExpData[currentYear] * graphPolyHeight + 10));
     
-    populationPoly.getSmoothed(5, 0.33f);
-    pollutionPoly.getSmoothed(5, 0.33f);
-    foodPoly.getSmoothed(5, 0.33);
-    industryPoly.getSmoothed(5, 0.33f);
-    lifeExpPoly.getSmoothed(5, 0.33f);
+//    populationPoly.getSmoothed(5, 0.33f);
+//    pollutionPoly.getSmoothed(5, 0.33f);
+//    foodPoly.getSmoothed(5, 0.33);
+//    industryPoly.getSmoothed(5, 0.33f);
+//    lifeExpPoly.getSmoothed(5, 0.33f);
     
     
 }
@@ -350,6 +347,7 @@ void ofApp::imageToGrid(){
             // Calculation of longitude and latitude from Map
             double longitude, latitude;
             float S = 128;
+            
             latitude = Gudermannian(convertRange(j,r2,r1));
             longitude = ofRadToDeg(i / R) - 180.0f;
 
@@ -366,6 +364,8 @@ void ofApp::imageToGrid(){
             
             ofColor rgbColor =  worldImage.getColor(i,j);
             cell.cellColor = rgbColor;
+            cell.initCellcolor = cell.cellColor;
+
             cell.cellType = classifyCelltype(rgbColor, imageHeight, j);
             cell.initCellType = cell.cellType;
 
@@ -385,7 +385,6 @@ void ofApp::imageToGrid(){
     }
     std::cout << across << std::endl;
     std::cout << down << std::endl;
-    ofLog() << colors.size() << " size" ;
 
 }
 
@@ -507,12 +506,11 @@ void ofApp::automaCellulare(){
                 if(foodIncreasing){
                     if(currentType == "sand" && nGrass >= 2){
                         if(chance < foodData[currentYear]){
-                            cout << "chance " + ofToString(chance) + " foodLvl " +  ofToString(foodData[currentYear]) << endl;
+                            //cout << "chance " + ofToString(chance) + " foodLvl " +  ofToString(foodData[currentYear]) << endl;
                             cells[i][j].cellType = "grass";
                             cells[i][j].cellColor = grassColors[(int)ofRandom(7)];
-                            cout << "make grass" << endl;
-                            cout << cells[i][j].cellColor << endl;
-                            
+                            //cout << "make grass" << endl;
+                            //cout << cells[i][j].cellColor << endl;
                         }
                     }
                 }
@@ -522,7 +520,7 @@ void ofApp::automaCellulare(){
                         if(chance < foodData[currentYear]/2   ){
                             cells[i][j].cellType = "sand";
                             cells[i][j].cellColor = sandColors[(int)ofRandom(4)];
-                            cout << "make sand" << endl;
+                            //cout << "make sand" << endl;
                         }
                     }
                 }
@@ -768,7 +766,6 @@ void ofApp::keyPressed(int key){
             break;
         case 'M':
             moveToGlobe = !moveToGlobe;
-            isDrifting = !isDrifting;
             break;
         // for city images
         case 'z':
@@ -779,6 +776,9 @@ void ofApp::keyPressed(int key){
             break;
         case 'c':
             bShowImageMexico = !bShowImageMexico;
+            break;
+        case 'N':
+            isDrifting = !isDrifting;
             break;
     }
 }
@@ -800,30 +800,28 @@ void ofApp::mouseDragged(int x, int y, int button){
 
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button){
-    // Reset all selections
-    popSelected = false;
-    lifeExpSelected = false;
-    ecoFootSelected = false;
-    foodSelected = false;
-    industrySelected = false;
-
-    // Check which rectangle was clicked and set its selection state
-    if (popRect.inside(x, y)) {
-        popSelected = true;
-        std::cout << "Inside popRect" << std::endl;
-    } else if (lifeExpRect.inside(x, y)) {
-        lifeExpSelected = true;
-        std::cout << "Inside lifeExpRect" << std::endl;
-    } else if (ecoFootRect.inside(x, y)) {
-        ecoFootSelected = true;
-        std::cout << "Inside ecoFootRect" << std::endl;
-    } else if (foodRect.inside(x, y)) {
-        foodSelected = true;
-        std::cout << "Inside foodRect" << std::endl;
-    } else if (industryRect.inside(x, y)) {
-        industrySelected = true;
-        std::cout << "Inside industryRect" << std::endl;
-    }
+//    popSelected = false;
+//    lifeExpSelected = false;
+//    ecoFootSelected = false;
+//    foodSelected = false;
+//    industrySelected = false;
+//
+//    if (popRect.inside(x, y)) {
+//        popSelected = true;
+//        std::cout << "Inside popRect" << std::endl;
+//    } else if (lifeExpRect.inside(x, y)) {
+//        lifeExpSelected = true;
+//        std::cout << "Inside lifeExpRect" << std::endl;
+//    } else if (ecoFootRect.inside(x, y)) {
+//        ecoFootSelected = true;
+//        std::cout << "Inside ecoFootRect" << std::endl;
+//    } else if (foodRect.inside(x, y)) {
+//        foodSelected = true;
+//        std::cout << "Inside foodRect" << std::endl;
+//    } else if (industryRect.inside(x, y)) {
+//        industrySelected = true;
+//        std::cout << "Inside industryRect" << std::endl;
+//    }
 }
 
 //--------------------------------------------------------------
@@ -988,8 +986,16 @@ void ofApp::resetSimulation(){
     foodPoly.clear();
     industryPoly.clear();
     lifeExpPoly.clear();
-    imageToGrid();
-    setCellSphereRadius();
+    //imageToGrid();
+    //setCellSphereRadius();
+    
+    for (int i = 0; i < 80; i++) {
+        for (int j = 0; j < 80; j++) {
+            cells[i][j].cellColor = cells[i][j].initCellcolor;
+        }
+    }
+    
+    
     cout << "Reset Simulation" << endl;
 }
 
@@ -1233,17 +1239,19 @@ std::string ofApp::convertWorld(const std::string& input) {
 }
 
 void ofApp::drawCityImages() {
+    
+    
     if (bShowImageNY) {
         ofSetColor(255);
-        cityImgNY.draw(0, 0);
+        cityImgNY.draw(20, ofGetHeight()/2);
     }
-    if (bShowImageMexico) {
+    else if (bShowImageMexico) {
         ofSetColor(255);
-        cityImgMexico.draw(300, 300);
+        cityImgMexico.draw(20, ofGetHeight()/2);
     }
-    if (bShowImageCairo) {
+    else if (bShowImageCairo) {
         ofSetColor(255);
-        cityImgCairo.draw(600, 600);
+        cityImgCairo.draw(20, ofGetHeight()/2);
     }
 }
 
