@@ -10,6 +10,16 @@ void ofApp::setup(){
 //    light.enable();
 //    light.setPosition(ofVec3f(100,100,200));
 //    light.lookAt(ofVec3f(0,0,0));
+ //   myfont.load("fonts/LEDLIGHT.otf", 60);
+    myfont.load("fonts/nasalization-rg.otf", 18);
+    
+    popText.load("fonts/nasalization-rg.otf", 18);
+    lifeExpText.load("fonts/nasalization-rg.otf", 18);
+    foodText.load("fonts/nasalization-rg.otf", 18);
+    ecoFootText.load("fonts/nasalization-rg.otf", 18);
+    industryText.load("fonts/nasalization-rg.otf", 18);
+    otherPlanetsSetup();
+    myGraphCols();
     ofSetBackgroundColor(0);
     loadCSVData();
     normSetup();
@@ -17,6 +27,8 @@ void ofApp::setup(){
     setCellSphereRadius();
     variableSetup();
     lastMinute = ofGetElapsedTimeMillis();
+    
+    placemarkerImage.load("photos/Cairo/Cairo_neutral_2095.png");
 
     std::cout << "set up finished"  << std::endl;
 }
@@ -26,8 +38,11 @@ void ofApp::setup(){
 
 //--------------------------------------------------------------
 void ofApp::update(){
-    rotationAngle += 0.1;  // for globe spin
+    rotationAngle += 0.1f;  // for globe spin
 
+    updatePlanets();
+
+    
     if(currentYear == 199){ start = false;}
 
     if(start){
@@ -40,74 +55,250 @@ void ofApp::update(){
             lastMinute = now;
         }
     }
+    
+    for (int i = 0; i < 80; i++) {
+        for (int j = 0; j < 80; j++) {
+            if (moveToGlobe) {
+                cells[i][j].driftPos.interpolate(cells[i][j].pos3D, 0.01f);
+            } else {
+                cells[i][j].driftPos += cells[i][j].velocity;
+            }
+        }
+    }
+}
+
+void ofApp::drawDataLegend(){
+    float legendYDim = plotHeight / 25;
+    myfont.setLineHeight(legendYDim * 5.0f);
+    float stringH =  myfont.getLineHeight();
+    
+    ofVec2f originL;
+    originL.set(origin.x +20 , origin.y + stringH/2);
+    
+    ofSetColor(255, 0, 0);
+    ofDrawCircle(originL, 5);
+    ofSetColor(0, 255, 0);
+    ofDrawCircle(origin, 5);
+    
+//    popText.drawString("Population", originL.x, originL.y + stringH);
+//    lifeExpText.drawString("Life Expectancy", originL.x, originL.y + stringH*2);
+//    ecoFootText.drawString("Eco Foot Print", originL.x, originL.y + stringH*3);
+//    foodText.drawString("Food", originL.x, originL.y  + stringH*4);
+//    industryText.drawString("Industry", originL.x, originL.y  + stringH*5);
+    
+    if (popSelected) {
+        ofSetColor(popColor);
+    } else {
+        ofSetColor(popColor, 100);
+    }
+    popText.drawString("Population", originL.x, originL.y + stringH);
+
+    if (lifeExpSelected) {
+        ofSetColor(lifeExpColor);
+    } else {
+        ofSetColor(lifeExpColor, 100);
+    }
+    lifeExpText.drawString("Life Expectancy", originL.x, originL.y + stringH*2);
+
+    if (ecoFootSelected) {
+        ofSetColor(ecoFootColor);
+    } else {
+        ofSetColor(ecoFootColor, 100);
+    }
+    ecoFootText.drawString("Eco Foot Print", originL.x, originL.y + stringH*3);
+
+    if (foodSelected) {
+        ofSetColor(foodColor);
+    } else {
+        ofSetColor(foodColor, 100);
+    }
+    foodText.drawString("Food", originL.x, originL.y  + stringH*4);
+
+    if (industrySelected) {
+        ofSetColor(industryColor);
+    } else {
+        ofSetColor(industryColor, 100);
+    }
+    industryText.drawString("Industry", originL.x, originL.y  + stringH*5);
+
+    popRect = popText.getStringBoundingBox("Population", originL.x, originL.y + stringH);
+    lifeExpRect  = lifeExpText.getStringBoundingBox("Life Expectancy", originL.x, originL.y + stringH*2);
+    ecoFootRect  = ecoFootText.getStringBoundingBox("Eco Foot Print", originL.x, originL.y + stringH*3);
+    foodRect  = foodText.getStringBoundingBox("Food", originL.x, originL.y  + stringH*4);
+    industryRect  = industryText.getStringBoundingBox("Industry", originL.x, originL.y  + stringH*5);
+    
+    ofSetColor(255, 230, 10);
+//    ofDrawRectangle(popRect.x, popRect.y, popRect.width, popRect.height);
+//    ofDrawRectangle(lifeExpRect.x, lifeExpRect.y, lifeExpRect.width, lifeExpRect.height);
+//    ofDrawRectangle(ecoFootRect.x, ecoFootRect.y, ecoFootRect.width, ecoFootRect.height);
+//    ofDrawRectangle(foodRect.x, foodRect.y, foodRect.width, foodRect.height);
+//    ofDrawRectangle(industryRect.x, industryRect.y, industryRect.width, industryRect.height);
+
+    
+    
+
+    
+    ofSetColor(40);
+    ofDrawRectRounded(origin.x, origin.y  + 20, plotWidth, plotHeight, 25);
 }
 
 //--------------------------------------------------------------
 void ofApp::draw(){
     //worldImage.draw(0,0);
+    ofSetColor(255, 255, 255, 255);
+    //placemarkerImage.draw(0,0);
+    cam.begin();
 
-//    earthSpinning();
+    drawPlanets();
+    earthSpinning();
     
-    cellArrayToImage();
+    cam.end();
+
+//    cellArrayToImage();
     
-    drawGUI();
-    dataPlotter();
+    //drawGUI();
+    //dataPlotter();
+    //drawDataLegend();
 
 }
 
+void ofApp::drawPlanets() {
+    if (mars.pos3D.z < 0) {
+        ofSetColor(mars.color);
+        ofDrawSphere(mars.pos3D.x, mars.pos3D.y, mars.pos3D.z, mars.radius);
+    }
+
+    if (jupiter.pos3D.z < 0) {
+        ofSetColor(jupiter.color);
+        ofDrawSphere(jupiter.pos3D.x, jupiter.pos3D.y, jupiter.pos3D.z, jupiter.radius);
+    }
+    
+    if (pluto.pos3D.z < 0) {
+        ofSetColor(pluto.color);
+        ofDrawSphere(pluto.pos3D.x, pluto.pos3D.y, pluto.pos3D.z, pluto.radius);
+    }
+
+}
+
+
+void ofApp::myGraphCols(){
+    blue.set( 57,96,169);
+    purple.set( 152,66,109);
+    organge.set( 252,134,88);
+    brown.set( 121,104,37);
+    greenA.set( 93,173,90);
+    greenB.set(129,203,94);
+    yello.set(252,251,189);
+    
+    popColor.setHsb(0, 255, 255);       // Red
+    lifeExpColor.setHsb(64, 255, 255);  // Yellow
+    ecoFootColor.setHsb(128, 255, 255); // Green
+    foodColor.setHsb(192, 255, 255);    // Cyan
+    industryColor.setHsb(240, 255, 255);// Blue
+    
+    popSelected = false;
+    lifeExpSelected = false;
+    ecoFootSelected = false;
+    foodSelected = false;
+    industrySelected = false;
+}
+
+
+
 void ofApp::dataPlotter(){
-    plotWidth = ofGetWidth() * 0.3;
-    plotHeight = ofGetHeight() * 0.2;
-    origin.set(ofGetWidth() - plotWidth, plotHeight + 30);
+    plotWidth = ofGetWidth() * 0.3f;
+    plotHeight = ofGetHeight() * 0.2f;
+    origin.set(ofGetWidth() - plotWidth - 20, plotHeight + 30);
 
 
     
     if(pollutionPoly.size() > 0){
-        ofSetColor(50, 50, 50);
-        populationPoly.draw();
+        ofSetColor(blue, 100);
         ofSetColor(255, 255, 255);
-        pollutionPoly.draw();
         ofSetColor(0, 255, 0);
-        foodPoly.draw();
+        ofSetColor(blue, 255);
         ofSetColor(50, 50, 50);
-        industryPoly.draw();
-        ofSetColor(50, 50, 50);
+        
+        if (popSelected) {
+            ofSetColor(popColor);
+        } else {
+            ofSetColor(popColor, 100);
+        }
+        populationPoly.draw();
+
+        if (lifeExpSelected) {
+            ofSetColor(lifeExpColor);
+        } else {
+            ofSetColor(lifeExpColor, 100);
+        }
         lifeExpPoly.draw();
+
+        if (ecoFootSelected) {
+            ofSetColor(ecoFootColor);
+        } else {
+            ofSetColor(ecoFootColor, 100);
+        }
+        pollutionPoly.draw();
+
+        if (foodSelected) {
+            ofSetColor(foodColor);
+        } else {
+            ofSetColor(foodColor, 100);
+        }
+        foodPoly.draw();
+
+        if (industrySelected) {
+            ofSetColor(industryColor);
+        } else {
+            ofSetColor(industryColor, 100);
+        }
+        industryPoly.draw();
+
+        
+        
+        
     }
-    //ofSetColor(100);
-    //ofDrawRectangle(ofGetWidth() - plotWidth, 0 + 30, plotWidth, plotHeight);
+    ofSetColor(20);
+    ofDrawRectRounded(origin.x, 0, plotWidth, plotHeight + 30 , 25);
  
 }
 
 void ofApp::updatePlotter(){
     ofSetLineWidth(3);
 
-    float xx = ((float)currentYear / 200.0) * plotWidth + origin.x;
+    float xx = ((float)currentYear / 200.0f) * plotWidth + origin.x;
     populationPoly.addVertex( xx , origin.y - (populationData[currentYear] * plotHeight));
     pollutionPoly.addVertex( xx , origin.y - (ecoFootData[currentYear] * plotHeight));
     foodPoly.addVertex( xx , origin.y - (foodData[currentYear] * plotHeight));
     industryPoly.addVertex( xx , origin.y - (industryData[currentYear] * plotHeight));
     lifeExpPoly.addVertex( xx , origin.y - (lifeExpData[currentYear] * plotHeight));
     
-    populationPoly.getSmoothed(5, 0.33);
-    pollutionPoly.getSmoothed(5, 0.33);
+    populationPoly.getSmoothed(5, 0.33f);
+    pollutionPoly.getSmoothed(5, 0.33f);
     foodPoly.getSmoothed(5, 0.33);
-    industryPoly.getSmoothed(5, 0.33);
-    lifeExpPoly.getSmoothed(5, 0.33);
+    industryPoly.getSmoothed(5, 0.33f);
+    lifeExpPoly.getSmoothed(5, 0.33f);
     
 }
 
 void ofApp::earthSpinning(){
-    cam.begin();
     ofPushMatrix();
     
     ofRotateXDeg(80);  // Rotate the sphere 90 degrees around the X-axis
     ofRotateZDeg(rotationAngle);  // Apply the rotation around the Y-axis for spinning effect
     ofSetColor(246,245, 257);
-    sphere.draw();
+    
+    if(checkSpheresInPosition(1.0f)){
+        sphere.draw();
+    }
+    
     cellArrayToImage3D();
 
     ofPopMatrix();
+
+
+
+}
 
 //    ofPushMatrix();
 //    // Translate to the top right quadrant
@@ -117,9 +308,6 @@ void ofApp::earthSpinning(){
 //    // Draw the second sphere
 //    spherePlanet.draw();
 //    ofPopMatrix();
-
-    cam.end();
-}
 
 void ofApp::imageToGrid(){
         
@@ -160,7 +348,7 @@ void ofApp::imageToGrid(){
             double longitude, latitude;
             float S = 128;
             latitude = Gudermannian(convertRange(j,r2,r1));
-            longitude = ofRadToDeg(i / R) - 180.0;
+            longitude = ofRadToDeg(i / R) - 180.0f;
 
             // conversion to spherical coordinates
             float phi = (90 - (latitude)) * (_PI / 180);
@@ -168,6 +356,10 @@ void ofApp::imageToGrid(){
             cell.pos3D.x = -1* (S * sin(phi) * cos(theta));
             cell.pos3D.y = S * sin(phi) * sin(theta);
             cell.pos3D.z = S * cos(phi);
+            
+            // random positions and vels for drifitng animiation
+            cell.driftPos = ofVec3f(ofRandom(-500, 500), ofRandom(-500, 500), ofRandom(-500, 500));
+            cell.velocity = ofVec3f(ofRandom(-1, 1), ofRandom(-1, 1), ofRandom(-1, 1));
             
             ofColor rgbColor =  worldImage.getColor(i,j);
             cell.cellColor = rgbColor;
@@ -225,9 +417,22 @@ void ofApp::cellArrayToImage3D(){
         {
             Cell _c = cells[i][j];
             ofSetColor(_c.cellColor);
-            ofDrawSphere(_c.pos3D.x, _c.pos3D.y, _c.pos3D.z, _c.sphereRadius);
+            //ofDrawSphere(_c.pos3D.x, _c.pos3D.y, _c.pos3D.z, _c.sphereRadius);
+            ofDrawSphere(_c.driftPos.x, _c.driftPos.y, _c.driftPos.z, _c.sphereRadius);
+
         }
     }
+}
+
+bool ofApp::checkSpheresInPosition(float threshold) {
+    for (int i = 0; i < 5; i++) {
+        for (int j = 0; j < 5; j++) {
+            if (cells[i][j].driftPos.distance(cells[i][j].pos3D) > threshold) {
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 void ofApp::automaCellulare(){
@@ -345,6 +550,40 @@ void ofApp::automaCellulare(){
                 }
             }
             
+            // Eco Foot Rule ice Vs sea
+            if(true){
+                if(pollutionIncreasing){
+                    if(ecoFootData[currentYear] > 0.3){
+                        if(currentType == "ice" && nOcean >= 4){
+                            if(chance < ecoFootData[currentYear]){ //chance chance < ecoFootData[currentYear]
+                                cells[i][j].cellType = "ocean";
+                                cells[i][j].cellColor = seaColors[(int)ofRandom(6)];
+                            }
+                        }
+                    }
+                }
+                
+                if(!pollutionIncreasing){
+                    if(currentType == "ocean" && currentInitType == "ice"){
+                        if(ecoFootData[currentYear] < 0.4){
+                            if(chance < 1.0){ //chance
+                                cells[i][j].cellType = "ice";
+                                cells[i][j].cellColor = ofColor(230,240,244);
+                            }
+                        }
+                    }
+                    
+                    if(ecoFootData[currentYear] < 0.4){
+                        if(currentType == "ocean" && nIce >=4){
+                            if(chance < 1.0){
+                                cells[i][j].cellType = "ice";
+                                cells[i][j].cellColor = ofColor(240,240,244);
+                            }
+                        }
+                    }
+                }
+            }
+            
             
             //  ICE
             
@@ -394,7 +633,9 @@ void ofApp::automaCellulare(){
 // Draw GUI
 //--------------------------------------------------------------
 void ofApp::drawGUI(){
-    //    myfont.drawString("Future Worlds", ofGetWidth()/2 - myfont.stringWidth("Future Wolrds")/2 - 25, 100);
+    ofSetColor(255, 0, 255);
+
+        myfont.drawString("Future Worlds", ofGetWidth()/2 - myfont.stringWidth("Future Wolrds")/2 - 25, 100);
     //    ofDrawBitmapStringHighlight("point " + ofToString(mouseX) + " " + ofToString(mouseY) , 600, 600);
 
     centreH = ofGetHeight()/2;
@@ -405,7 +646,7 @@ void ofApp::drawGUI(){
 //    ofDrawEllipse(ofGetWidth() - 300 , ofGetHeight() - 50 , 50, 50);
     
     // timeline
-    ofDrawLine(centreW - 300 , ofGetHeight() - 50 , centreW + 300 , ofGetHeight() - 50);
+    ofDrawLine(centreW - 300 , ofGetHeight() - 50 ,     centreW + 300 , ofGetHeight() - 50);
     ofDrawLine(centreW - 300 , ofGetHeight() - 50 + 5 , centreW - 300 , ofGetHeight() - 50 - 5);
     ofDrawLine(centreW + 300 , ofGetHeight() - 50 + 5 , centreW + 300 , ofGetHeight() - 50 - 5);
     
@@ -452,8 +693,6 @@ void ofApp::drawGUI(){
     
     ofDrawBitmapStringHighlight( worldType, 50, currentHeight - 120);
 
-
-    
     // Data Type color indicator
     ofSetColor(255, 0, 0);
     ofDrawEllipse(40, 45, 5,5);
@@ -520,7 +759,10 @@ void ofApp::keyPressed(int key){
         case  'R':
             resetSimulation();
             break;
-
+        case 'M':
+            moveToGlobe = !moveToGlobe;
+            isDrifting = !isDrifting;
+            break;
     }
 }
 
@@ -541,7 +783,30 @@ void ofApp::mouseDragged(int x, int y, int button){
 
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button){
+    // Reset all selections
+    popSelected = false;
+    lifeExpSelected = false;
+    ecoFootSelected = false;
+    foodSelected = false;
+    industrySelected = false;
 
+    // Check which rectangle was clicked and set its selection state
+    if (popRect.inside(x, y)) {
+        popSelected = true;
+        std::cout << "Inside popRect" << std::endl;
+    } else if (lifeExpRect.inside(x, y)) {
+        lifeExpSelected = true;
+        std::cout << "Inside lifeExpRect" << std::endl;
+    } else if (ecoFootRect.inside(x, y)) {
+        ecoFootSelected = true;
+        std::cout << "Inside ecoFootRect" << std::endl;
+    } else if (foodRect.inside(x, y)) {
+        foodSelected = true;
+        std::cout << "Inside foodRect" << std::endl;
+    } else if (industryRect.inside(x, y)) {
+        industrySelected = true;
+        std::cout << "Inside industryRect" << std::endl;
+    }
 }
 
 //--------------------------------------------------------------
@@ -582,7 +847,7 @@ void ofApp::dragEvent(ofDragInfo dragInfo){
 void ofApp::checkDataDirection() {
     
     int nextYear = currentYear + 1;
-    if( ecoFootData[currentYear] > 0.1){
+    if( ecoFootData[currentYear] > 0.0){
         pollutionIncreasing = (ecoFootData[currentYear] < ecoFootData[nextYear]);
     }
     populationIncreasing = (populationData[currentYear] < populationData[nextYear] && populationData[currentYear] > 0.1);
@@ -643,6 +908,7 @@ void ofApp::goodSetup(){
     foodData = goodData[2];
     populationData = goodData[3];
     lifeExpData = goodData[5];
+    persistantPollutionData = goodData[4];
     setupMaxYear();
     
     cout << "good Setup" << endl;
@@ -654,6 +920,8 @@ void ofApp::badSetup(){
     foodData = badData[2];
     populationData = badData[3];
     lifeExpData = badData[5];
+    persistantPollutionData = badData[4];
+
     
     setupMaxYear();
     
@@ -666,6 +934,8 @@ void ofApp::normSetup(){
     foodData = normData[2];
     populationData = normData[3];
     lifeExpData = normData[5];
+    persistantPollutionData = normData[4];
+
     //            for (int j = 0; j < arraySize; j++) {
     //                std::cout << j << std::endl;
     //                std::cout << ecoFootData[j] << std::endl;
@@ -815,4 +1085,57 @@ string ofApp::classifyCelltype(ofColor rgbColor, float imHeight, float j)
     else if (rgbColor.getBrightness() < 150.0f) {return"grass";}
     
     return "sand";
+}
+
+void ofApp::otherPlanetsSetup(){
+    mars.color = ofColor(193,68,14);
+    mars.radius = 5.0f;
+    mars.orbitRadiusX = 800.0f;
+    mars.orbitRadiusY = 200.0f;
+    mars.orbitSpeed = 5.0f;
+    mars.angle = 0.0f;
+    mars.inclination = 45.0f;
+
+    jupiter.color = ofColor(228, 229, 198);
+    jupiter.radius = 5.0f;
+    jupiter.orbitRadiusX = 1000.0f;
+    jupiter.orbitRadiusY = 250.0f;
+    jupiter.orbitSpeed = 3.0f;
+    jupiter.angle = 0.0f;
+    jupiter.inclination = 45.0f;
+    
+    pluto.color = ofColor(37, 114, 206);
+    pluto.radius = 5.0f;
+    pluto.orbitRadiusX = 9000.0f;
+    pluto.orbitRadiusY = 190.0f;
+    pluto.orbitSpeed = 2.0f;
+    pluto.angle = 0.0f;
+    pluto.inclination = 45.0f;
+}
+
+void ofApp::updatePlanets() {
+    mars.angle += mars.orbitSpeed * ofGetLastFrameTime();
+    jupiter.angle += jupiter.orbitSpeed * ofGetLastFrameTime();
+    pluto.angle += pluto.orbitSpeed * ofGetLastFrameTime();
+
+
+    float marsRad = mars.angle * DEG_TO_RAD;
+    float jupiterRad = jupiter.angle * DEG_TO_RAD;
+    float plutoRad = pluto.angle * DEG_TO_RAD;
+
+
+    mars.pos3D.x = mars.orbitRadiusX * cos(marsRad);
+    mars.pos3D.y = mars.orbitRadiusY * sin(marsRad);
+    mars.pos3D.z = -50;
+    mars.pos3D.rotate(mars.inclination, ofVec3f(1, 0, 0));
+
+    jupiter.pos3D.x = jupiter.orbitRadiusX * cos(jupiterRad);
+    jupiter.pos3D.y = jupiter.orbitRadiusY * sin(jupiterRad);
+    jupiter.pos3D.z = -25;
+    jupiter.pos3D.rotate(jupiter.inclination, ofVec3f(1, 0, 0));
+    
+    pluto.pos3D.x = pluto.orbitRadiusX * cos(plutoRad);
+    pluto.pos3D.y = pluto.orbitRadiusY * sin(plutoRad);
+    pluto.pos3D.z = -25;
+    pluto.pos3D.rotate(pluto.inclination, ofVec3f(1, 0, 0));
 }

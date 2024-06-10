@@ -14,9 +14,22 @@ public:
     ofColor cellColor;
     string cellType;
     string initCellType;
+    ofVec3f driftPos;
+    ofVec3f velocity;
     ofVec2f pos2D;
     ofVec3f pos3D;
     float sphereRadius;
+};
+
+struct Planet {
+    ofVec3f pos3D;
+    ofColor color;
+    float radius;
+    float orbitRadiusX;
+    float orbitRadiusY;
+    float orbitSpeed;
+    float angle;
+    float inclination;
 };
 
 class ofApp : public ofBaseApp{
@@ -40,6 +53,8 @@ class ofApp : public ofBaseApp{
         void dragEvent(ofDragInfo dragInfo) override;
         void gotMessage(ofMessage msg) override;
     
+    void drawDataLegend();
+    
 
     void loadCSVData();
     void goodSetup();
@@ -60,6 +75,7 @@ class ofApp : public ofBaseApp{
     float normData[11][200];
     
     float* ecoFootData;
+    float* persistantPollutionData;
     float* populationData;
     float* foodData;
     float* industryData;
@@ -69,11 +85,37 @@ class ofApp : public ofBaseApp{
     
     bool dataReady = false;
     
+    
+    ofTrueTypeFont myfont;
+    ofTrueTypeFont popText;
+    ofTrueTypeFont lifeExpText;
+    ofTrueTypeFont foodText;
+    ofTrueTypeFont ecoFootText;
+    ofTrueTypeFont industryText;
+    
+    ofRectangle popRect;
+    ofRectangle lifeExpRect;
+    ofRectangle foodRect;
+    ofRectangle ecoFootRect;
+    ofRectangle industryRect;
+    
+    ofColor popColor;
+    ofColor lifeExpColor;
+    ofColor ecoFootColor;
+    ofColor foodColor;
+    ofColor industryColor;
+
+    bool popSelected;
+    bool lifeExpSelected;
+    bool ecoFootSelected;
+    bool foodSelected;
+    bool industrySelected;
+
 
 
     void setupMaxYear();
     
-
+    ofImage placemarkerImage;
     
     void imageToGrid();
     void cellArrayToImage();
@@ -183,6 +225,19 @@ class ofApp : public ofBaseApp{
     float centreH;
     float centreW;
     
+    // animation
+    bool moveToGlobe = false;
+    bool isDrifting = true;
+    bool areSpheresInPosition = false;
+    bool checkSpheresInPosition(float threshold);
+    
+    // other planets
+    Planet mars;
+    Planet jupiter;
+    Planet pluto;
+    void otherPlanetsSetup();
+    void updatePlanets();
+    void drawPlanets();
     
     // Graph Plot Variables
     int plotWidth;
@@ -223,6 +278,25 @@ class ofApp : public ofBaseApp{
         ofColor(12, 151,212 ),
         ofColor(6, 81, 98)
     };
+    
+    void myGraphCols();
+    ofColor blue;
+    ofColor purple;
+    ofColor organge;
+    ofColor brown;
+    ofColor greenA;
+    ofColor greenB;
+    ofColor yello;
+    
+    int photoYears[31] = {
+        1900, 1906, 1913, 1919, 1926, 1932, 1939, 1945, 1952, 1958, 1965, 1971, 1978,
+        1984, 1991, 1997, 2004, 2010, 2017, 2023, 2030, 2036, 2043, 2049, 2056, 2062,
+        2069, 2075, 2082, 2088, 2095
+    };
+    
+    void picManager();
+    ofImage currentPic;
+
 
 
     
