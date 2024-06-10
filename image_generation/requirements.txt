@@ -1,0 +1,16 @@
+albumentations==0.4.3
+diffusers
+# opencvpython==4.1.2.30
+pudb==2019.2
+# invisiblewatermark
+imageio==2.9.0
+# imageioffmpeg==0.4.2
+# pytorchlightning==1.4.2
+omegaconf==2.1.1
+testtube>=0.7.5
+streamlit>=0.73.1
+einops==0.3.0
+# torchfidelity==0.3.0
+transformers==4.19.2
+torchmetrics==0.6.0
+kornia==0.6
