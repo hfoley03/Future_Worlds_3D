@@ -92,12 +92,23 @@ class ofApp : public ofBaseApp{
     ofTrueTypeFont foodText;
     ofTrueTypeFont ecoFootText;
     ofTrueTypeFont industryText;
+    ofTrueTypeFont timelineText;
+    
+    void fontSetup();
     
     ofRectangle popRect;
     ofRectangle lifeExpRect;
     ofRectangle foodRect;
     ofRectangle ecoFootRect;
     ofRectangle industryRect;
+    
+    ofVec2f popCirc1;
+    ofVec2f lifeExpCirc1;
+    ofVec2f foodCirc1;
+    ofVec2f ecoFootCirc1;
+    ofVec2f industryCirc1;
+    
+    void dataCirc1Setup();
     
     ofColor popColor;
     ofColor lifeExpColor;

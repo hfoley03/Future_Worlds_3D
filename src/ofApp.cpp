@@ -11,13 +11,8 @@ void ofApp::setup(){
 //    light.setPosition(ofVec3f(100,100,200));
 //    light.lookAt(ofVec3f(0,0,0));
  //   myfont.load("fonts/LEDLIGHT.otf", 60);
-    myfont.load("fonts/nasalization-rg.otf", 18);
     
-    popText.load("fonts/nasalization-rg.otf", 18);
-    lifeExpText.load("fonts/nasalization-rg.otf", 18);
-    foodText.load("fonts/nasalization-rg.otf", 18);
-    ecoFootText.load("fonts/nasalization-rg.otf", 18);
-    industryText.load("fonts/nasalization-rg.otf", 18);
+    fontSetup();
     otherPlanetsSetup();
     myGraphCols();
     ofSetBackgroundColor(0);
@@ -68,79 +63,76 @@ void ofApp::update(){
 }
 
 void ofApp::drawDataLegend(){
-    float legendYDim = plotHeight / 25;
+    float legendYDim = plotHeight / 20;
     myfont.setLineHeight(legendYDim * 5.0f);
-    float stringH =  myfont.getLineHeight();
+    float stringH =  myfont.getLineHeight() * 0.7f;
     
+    float rightMargin = ofGetWidth() - 20;
     ofVec2f originL;
-    originL.set(origin.x +20 , origin.y + stringH/2);
+    originL.set(origin.x + 20 , origin.y + stringH/2);
     
-    ofSetColor(255, 0, 0);
-    ofDrawCircle(originL, 5);
-    ofSetColor(0, 255, 0);
-    ofDrawCircle(origin, 5);
+//    ofSetColor(255, 0, 0);
+//    ofDrawCircle(originL, 5);
+//    ofSetColor(0, 255, 0);
+//    ofDrawCircle(origin, 5);
     
-//    popText.drawString("Population", originL.x, originL.y + stringH);
-//    lifeExpText.drawString("Life Expectancy", originL.x, originL.y + stringH*2);
-//    ecoFootText.drawString("Eco Foot Print", originL.x, originL.y + stringH*3);
-//    foodText.drawString("Food", originL.x, originL.y  + stringH*4);
-//    industryText.drawString("Industry", originL.x, originL.y  + stringH*5);
+    float textX;
     
+    // Population
+    textX = rightMargin - popText.getStringBoundingBox("Population", 0, 0).width;
     if (popSelected) {
         ofSetColor(popColor);
     } else {
-        ofSetColor(popColor, 100);
+        ofSetColor(popColor, 255);
     }
-    popText.drawString("Population", originL.x, originL.y + stringH);
+    popText.drawString("Population", textX, originL.y + stringH);
 
+    // Life Expectancy
+    textX = rightMargin - lifeExpText.getStringBoundingBox("Life Expectancy", 0, 0).width;
     if (lifeExpSelected) {
         ofSetColor(lifeExpColor);
     } else {
-        ofSetColor(lifeExpColor, 100);
+        ofSetColor(lifeExpColor, 255);
     }
-    lifeExpText.drawString("Life Expectancy", originL.x, originL.y + stringH*2);
+    lifeExpText.drawString("Life Expectancy", textX, originL.y + stringH*2);
 
+    // Eco Foot Print
+    textX = rightMargin - ecoFootText.getStringBoundingBox("Eco Foot Print", 0, 0).width;
     if (ecoFootSelected) {
         ofSetColor(ecoFootColor);
     } else {
-        ofSetColor(ecoFootColor, 100);
+        ofSetColor(ecoFootColor, 255);
     }
-    ecoFootText.drawString("Eco Foot Print", originL.x, originL.y + stringH*3);
+    ecoFootText.drawString("Eco Foot Print", textX, originL.y + stringH*3);
 
+    // Food
+    textX = rightMargin - foodText.getStringBoundingBox("Food", 0, 0).width;
     if (foodSelected) {
         ofSetColor(foodColor);
     } else {
-        ofSetColor(foodColor, 100);
+        ofSetColor(foodColor, 255);
     }
-    foodText.drawString("Food", originL.x, originL.y  + stringH*4);
+    foodText.drawString("Food", textX, originL.y + stringH*4);
 
+    // Industry
+    textX = rightMargin - industryText.getStringBoundingBox("Industry", 0, 0).width;
     if (industrySelected) {
         ofSetColor(industryColor);
     } else {
-        ofSetColor(industryColor, 100);
+        ofSetColor(industryColor, 255);
     }
-    industryText.drawString("Industry", originL.x, originL.y  + stringH*5);
+    industryText.drawString("Industry", textX, originL.y + stringH*5);
 
-    popRect = popText.getStringBoundingBox("Population", originL.x, originL.y + stringH);
-    lifeExpRect  = lifeExpText.getStringBoundingBox("Life Expectancy", originL.x, originL.y + stringH*2);
-    ecoFootRect  = ecoFootText.getStringBoundingBox("Eco Foot Print", originL.x, originL.y + stringH*3);
-    foodRect  = foodText.getStringBoundingBox("Food", originL.x, originL.y  + stringH*4);
-    industryRect  = industryText.getStringBoundingBox("Industry", originL.x, originL.y  + stringH*5);
+    popRect = popText.getStringBoundingBox("Population", textX, originL.y + stringH);
+    lifeExpRect  = lifeExpText.getStringBoundingBox("Life Expectancy", textX, originL.y + stringH*2);
+    ecoFootRect  = ecoFootText.getStringBoundingBox("Eco Foot Print", textX, originL.y + stringH*3);
+    foodRect  = foodText.getStringBoundingBox("Food", textX, originL.y + stringH*4);
+    industryRect  = industryText.getStringBoundingBox("Industry", textX, originL.y + stringH*5);
     
-    ofSetColor(255, 230, 10);
-//    ofDrawRectangle(popRect.x, popRect.y, popRect.width, popRect.height);
-//    ofDrawRectangle(lifeExpRect.x, lifeExpRect.y, lifeExpRect.width, lifeExpRect.height);
-//    ofDrawRectangle(ecoFootRect.x, ecoFootRect.y, ecoFootRect.width, ecoFootRect.height);
-//    ofDrawRectangle(foodRect.x, foodRect.y, foodRect.width, foodRect.height);
-//    ofDrawRectangle(industryRect.x, industryRect.y, industryRect.width, industryRect.height);
-
-    
-    
-
-    
-    ofSetColor(40);
-    ofDrawRectRounded(origin.x, origin.y  + 20, plotWidth, plotHeight, 25);
+   //ofSetColor(40);
+    //ofDrawRectangle(origin.x, origin.y + 20, plotWidth, plotHeight);
 }
+
 
 //--------------------------------------------------------------
 void ofApp::draw(){
@@ -156,29 +148,12 @@ void ofApp::draw(){
 
 //    cellArrayToImage();
     
-    //drawGUI();
-    //dataPlotter();
-    //drawDataLegend();
+    drawGUI();
+    dataPlotter();
+    drawDataLegend();
 
 }
 
-void ofApp::drawPlanets() {
-    if (mars.pos3D.z < 0) {
-        ofSetColor(mars.color);
-        ofDrawSphere(mars.pos3D.x, mars.pos3D.y, mars.pos3D.z, mars.radius);
-    }
-
-    if (jupiter.pos3D.z < 0) {
-        ofSetColor(jupiter.color);
-        ofDrawSphere(jupiter.pos3D.x, jupiter.pos3D.y, jupiter.pos3D.z, jupiter.radius);
-    }
-    
-    if (pluto.pos3D.z < 0) {
-        ofSetColor(pluto.color);
-        ofDrawSphere(pluto.pos3D.x, pluto.pos3D.y, pluto.pos3D.z, pluto.radius);
-    }
-
-}
 
 
 void ofApp::myGraphCols(){
@@ -203,8 +178,6 @@ void ofApp::myGraphCols(){
     industrySelected = false;
 }
 
-
-
 void ofApp::dataPlotter(){
     plotWidth = ofGetWidth() * 0.3f;
     plotHeight = ofGetHeight() * 0.2f;
@@ -224,6 +197,9 @@ void ofApp::dataPlotter(){
         } else {
             ofSetColor(popColor, 100);
         }
+        ofDrawCircle(populationPoly.getVertices()[0], 5);
+        ofDrawCircle(populationPoly.getVertices().back(), 5);
+        cout << popCirc1 << endl;
         populationPoly.draw();
 
         if (lifeExpSelected) {
@@ -231,6 +207,8 @@ void ofApp::dataPlotter(){
         } else {
             ofSetColor(lifeExpColor, 100);
         }
+        ofDrawCircle(lifeExpPoly.getVertices()[0], 5);
+        ofDrawCircle(lifeExpPoly.getVertices().back(), 5);
         lifeExpPoly.draw();
 
         if (ecoFootSelected) {
@@ -239,12 +217,16 @@ void ofApp::dataPlotter(){
             ofSetColor(ecoFootColor, 100);
         }
         pollutionPoly.draw();
+        ofDrawCircle(pollutionPoly.getVertices()[0], 5);
+        ofDrawCircle(pollutionPoly.getVertices().back(), 5);
 
         if (foodSelected) {
             ofSetColor(foodColor);
         } else {
             ofSetColor(foodColor, 100);
         }
+        ofDrawCircle(foodPoly.getVertices()[0], 5);
+        ofDrawCircle(foodPoly.getVertices().back(), 5);
         foodPoly.draw();
 
         if (industrySelected) {
@@ -252,32 +234,44 @@ void ofApp::dataPlotter(){
         } else {
             ofSetColor(industryColor, 100);
         }
+        ofDrawCircle(industryPoly.getVertices()[0], 5);
+        ofDrawCircle(industryPoly.getVertices().back(), 5);
         industryPoly.draw();
 
         
         
         
     }
-    ofSetColor(20);
-    ofDrawRectRounded(origin.x, 0, plotWidth, plotHeight + 30 , 25);
+    ofSetColor(50);
+    ofDrawRectRounded(origin.x, 0 + 10, plotWidth, plotHeight + 30 , 25);
+    ofSetColor(200);
+    ofDrawRectRounded(origin.x -10, 0, plotWidth + 20, plotHeight + 30  + 20 , 25);
+    
  
 }
+
+void ofApp::dataCirc1Setup(){
+    
+}
+
 
 void ofApp::updatePlotter(){
     ofSetLineWidth(3);
 
-    float xx = ((float)currentYear / 200.0f) * plotWidth + origin.x;
-    populationPoly.addVertex( xx , origin.y - (populationData[currentYear] * plotHeight));
-    pollutionPoly.addVertex( xx , origin.y - (ecoFootData[currentYear] * plotHeight));
-    foodPoly.addVertex( xx , origin.y - (foodData[currentYear] * plotHeight));
-    industryPoly.addVertex( xx , origin.y - (industryData[currentYear] * plotHeight));
-    lifeExpPoly.addVertex( xx , origin.y - (lifeExpData[currentYear] * plotHeight));
+    float xx = ((float)currentYear / 200.0f) * (plotWidth - 40) + origin.x + 20;
+    float graphPolyHeight = plotHeight - 20;
+    populationPoly.addVertex( xx , origin.y - (populationData[currentYear] * graphPolyHeight + 10));
+    pollutionPoly.addVertex( xx , origin.y - (ecoFootData[currentYear] * graphPolyHeight + 10));
+    foodPoly.addVertex( xx , origin.y - (foodData[currentYear] * graphPolyHeight + 10));
+    industryPoly.addVertex( xx , origin.y - (industryData[currentYear] * graphPolyHeight + 10));
+    lifeExpPoly.addVertex( xx , origin.y - (lifeExpData[currentYear] * graphPolyHeight + 10));
     
     populationPoly.getSmoothed(5, 0.33f);
     pollutionPoly.getSmoothed(5, 0.33f);
     foodPoly.getSmoothed(5, 0.33);
     industryPoly.getSmoothed(5, 0.33f);
     lifeExpPoly.getSmoothed(5, 0.33f);
+    
     
 }
 
@@ -635,8 +629,9 @@ void ofApp::automaCellulare(){
 void ofApp::drawGUI(){
     ofSetColor(255, 0, 255);
 
-        myfont.drawString("Future Worlds", ofGetWidth()/2 - myfont.stringWidth("Future Wolrds")/2 - 25, 100);
-    //    ofDrawBitmapStringHighlight("point " + ofToString(mouseX) + " " + ofToString(mouseY) , 600, 600);
+    myfont.drawString("Future Worlds", ofGetWidth()/2 - myfont.stringWidth("Future Wolrds")/2 - 25, 100);
+    ofDrawBitmapStringHighlight("point " + ofToString(mouseX) + " / " + ofToString(ofGetWidth())
+                                + " "  + ofToString(mouseY) + " / " + ofToString(ofGetHours()), 600, 600);
 
     centreH = ofGetHeight()/2;
     centreW = ofGetWidth()/2;
@@ -645,18 +640,21 @@ void ofApp::drawGUI(){
     ofSetColor(255, 255, 255);
 //    ofDrawEllipse(ofGetWidth() - 300 , ofGetHeight() - 50 , 50, 50);
     
+
+    
+    // Year
+    timelineText.drawString("1900", centreW - 350 , ofGetHeight() - 45);
+    timelineText.drawString("2100", centreW + 305 , ofGetHeight() - 45);
+    timelineText.drawString(ofToString(currentYear + startYear) , centreW - 315 + (currentYear * 3), ofGetHeight() - 28);
+
     // timeline
+    ofSetColor(255, 255, 255, 150);
     ofDrawLine(centreW - 300 , ofGetHeight() - 50 ,     centreW + 300 , ofGetHeight() - 50);
     ofDrawLine(centreW - 300 , ofGetHeight() - 50 + 5 , centreW - 300 , ofGetHeight() - 50 - 5);
     ofDrawLine(centreW + 300 , ofGetHeight() - 50 + 5 , centreW + 300 , ofGetHeight() - 50 - 5);
     
     // timeline cursror
     ofDrawEllipse(centreW - 300 + (currentYear * 3), ofGetHeight() - 50, 10,10);
-    
-    // Year
-    ofDrawBitmapStringHighlight(ofToString(currentYear + startYear) , centreW - 315 + (currentYear * 3), ofGetHeight() - 28);
-    ofDrawBitmapStringHighlight("1900", centreW - 300 , ofGetHeight() - 70);
-    ofDrawBitmapStringHighlight("2100", centreW + 270 , ofGetHeight() - 70);
     
     ofSetColor(255, 0, 0);
     ofDrawEllipse(centreW - 300 + (maxPopYear * 3), ofGetHeight() - 50, 5,5);
@@ -665,41 +663,41 @@ void ofApp::drawGUI(){
     ofSetColor(255, 255, 0);
     ofDrawEllipse(centreW - 300 + (maxIndYear * 3), ofGetHeight() - 50, 5,5);
     
-    ofSetColor(255, 0, 0, 255);
-
-    
-//    ofDrawBitmapStringHighlight("Year:       " + ofToString(currentYear + startYear) , 50, 30);
-
-    // Data and Current Values
-    ofDrawBitmapStringHighlight("Population: " + ofToString(populationData[currentYear], 3) , 50, 50);
-    ofDrawBitmapStringHighlight("Resources:  " + ofToString(lifeExpData[currentYear], 3) , 50, 70);
-    
-    std::string flagStr = pollutionIncreasing ? "increasing" : "decresing";
-    std::string extPol = extremePollution ? " extreme!" : " __";
-
-
-    
-    ofDrawBitmapStringHighlight("Pollution:  " + flagStr + extPol, 50, 90);
-    ofDrawBitmapStringHighlight("Industry:   " + ofToString(industryData[currentYear], 3) , 50, 110);
-    ofDrawBitmapStringHighlight("Food:       " + ofToString(foodData[currentYear], 3) , 50, 130);
-    
-    
-    int currentHeight = ofGetHeight();
-    ofDrawBitmapStringHighlight("ice count:       " + ofToString(iceCounter) , 50, currentHeight - 20);
-    ofDrawBitmapStringHighlight("ocean count:       " + ofToString(oceanCounter) , 50, currentHeight - 40);
-    ofDrawBitmapStringHighlight("grass count:       " + ofToString(grassCounter) , 50, currentHeight - 60);
-    ofDrawBitmapStringHighlight("sand count:       " + ofToString(sandCounter) , 50, currentHeight - 80);
-    ofDrawBitmapStringHighlight("city count:       " + ofToString(cityCounter) , 50, currentHeight - 100);
-    
-    ofDrawBitmapStringHighlight( worldType, 50, currentHeight - 120);
-
-    // Data Type color indicator
-    ofSetColor(255, 0, 0);
-    ofDrawEllipse(40, 45, 5,5);
-    ofSetColor(0, 255, 0);
-    ofDrawEllipse(40, 85, 5,5);
-    ofSetColor(255, 255, 0);
-    ofDrawEllipse(40, 105, 5,5);
+//    ofSetColor(255, 0, 0, 255);
+//
+//
+////    ofDrawBitmapStringHighlight("Year:       " + ofToString(currentYear + startYear) , 50, 30);
+//
+//    // Data and Current Values
+//    ofDrawBitmapStringHighlight("Population: " + ofToString(populationData[currentYear], 3) , 50, 50);
+//    ofDrawBitmapStringHighlight("Resources:  " + ofToString(lifeExpData[currentYear], 3) , 50, 70);
+//
+//    std::string flagStr = pollutionIncreasing ? "increasing" : "decresing";
+//    std::string extPol = extremePollution ? " extreme!" : " __";
+//
+//
+//
+//    ofDrawBitmapStringHighlight("Pollution:  " + flagStr + extPol, 50, 90);
+//    ofDrawBitmapStringHighlight("Industry:   " + ofToString(industryData[currentYear], 3) , 50, 110);
+//    ofDrawBitmapStringHighlight("Food:       " + ofToString(foodData[currentYear], 3) , 50, 130);
+//
+//
+//    int currentHeight = ofGetHeight();
+//    ofDrawBitmapStringHighlight("ice count:       " + ofToString(iceCounter) , 50, currentHeight - 20);
+//    ofDrawBitmapStringHighlight("ocean count:       " + ofToString(oceanCounter) , 50, currentHeight - 40);
+//    ofDrawBitmapStringHighlight("grass count:       " + ofToString(grassCounter) , 50, currentHeight - 60);
+//    ofDrawBitmapStringHighlight("sand count:       " + ofToString(sandCounter) , 50, currentHeight - 80);
+//    ofDrawBitmapStringHighlight("city count:       " + ofToString(cityCounter) , 50, currentHeight - 100);
+//
+//    ofDrawBitmapStringHighlight( worldType, 50, currentHeight - 120);
+//
+//    // Data Type color indicator
+//    ofSetColor(255, 0, 0);
+//    ofDrawEllipse(40, 45, 5,5);
+//    ofSetColor(0, 255, 0);
+//    ofDrawEllipse(40, 85, 5,5);
+//    ofSetColor(255, 255, 0);
+//    ofDrawEllipse(40, 105, 5,5);
 }
 
 void ofApp::exit(){
@@ -1138,4 +1136,32 @@ void ofApp::updatePlanets() {
     pluto.pos3D.y = pluto.orbitRadiusY * sin(plutoRad);
     pluto.pos3D.z = -25;
     pluto.pos3D.rotate(pluto.inclination, ofVec3f(1, 0, 0));
+}
+
+void ofApp::drawPlanets() {
+    if (mars.pos3D.z < 0) {
+        ofSetColor(mars.color);
+        ofDrawSphere(mars.pos3D.x, mars.pos3D.y, mars.pos3D.z, mars.radius);
+    }
+
+    if (jupiter.pos3D.z < 0) {
+        ofSetColor(jupiter.color);
+        ofDrawSphere(jupiter.pos3D.x, jupiter.pos3D.y, jupiter.pos3D.z, jupiter.radius);
+    }
+    
+    if (pluto.pos3D.z < 0) {
+        ofSetColor(pluto.color);
+        ofDrawSphere(pluto.pos3D.x, pluto.pos3D.y, pluto.pos3D.z, pluto.radius);
+    }
+}
+
+void ofApp::fontSetup(){
+    string fontname = "fonts/nasalization-rg.otf";
+    myfont.load(fontname, 18);
+    popText.load(fontname, 18);
+    lifeExpText.load(fontname, 18);
+    foodText.load(fontname, 18);
+    ecoFootText.load(fontname, 18);
+    industryText.load(fontname, 18);
+    timelineText.load(fontname, 12);
 }
