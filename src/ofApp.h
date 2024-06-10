@@ -248,6 +248,14 @@ class ofApp : public ofBaseApp{
     ofPolyline industryPoly;
     ofPolyline lifeExpPoly;
     ofVec2f origin;
+
+    ofImage cityImgMexico;
+    ofImage cityImgNY;
+    ofImage cityImgGreenland;
+    bool bShowImageMexico; 
+    bool bShowImageNY; 
+    bool bShowImageGreenland; 
+
     
     ofColor grassColors[8] = {
         ofColor(53, 78, 31),
