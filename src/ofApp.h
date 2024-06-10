@@ -235,6 +235,9 @@ class ofApp : public ofBaseApp{
     
     float centreH;
     float centreW;
+    float edgeOffset = 60;
+    int imageSize = 300;
+
     
     // animation
     bool moveToGlobe = false;
@@ -309,6 +312,23 @@ class ofApp : public ofBaseApp{
     ofImage currentPic;
 
 
+    void citySelect();
+    
+    ofRectangle leftArrowBox;
+    ofRectangle rightArrowBox;
+    
+    ofVec2f leftTriangleA;
+    ofVec2f leftTriangleB;
+    ofVec2f leftTriangleC;
+
+    ofVec2f rightTriangleA;
+    ofVec2f rightTriangleB;
+    ofVec2f rightTriangleC;
+    
+    ofTrueTypeFont cityFont;
+    vector<string> cities;
+    int currentCityIndex;
+    
     //Eray
     
     void loadImageForYear(std::string condition);

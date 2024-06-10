@@ -12,7 +12,7 @@ void ofApp::setup(){
 //    light.lookAt(ofVec3f(0,0,0));
  //   myfont.load("fonts/LEDLIGHT.otf", 60);
     ofSetVerticalSync(true);
-    ofSetFrameRate(50);
+    ofSetFrameRate(30);
 
     fontSetup();
     otherPlanetsSetup();
@@ -36,7 +36,8 @@ void ofApp::setup(){
 //--------------------------------------------------------------
 void ofApp::update(){
     rotationAngle += 0.1f;  // for globe spin
-
+    centreH = ofGetHeight()/2;
+    centreW = ofGetWidth()/2;
     updatePlanets();
 
     
@@ -72,82 +73,15 @@ void ofApp::update(){
     ofSetWindowTitle(fpsString);
 }
 
-void ofApp::drawDataLegend(){
-    float legendYDim = plotHeight / 20;
-    myfont.setLineHeight(legendYDim * 5.0f);
-    float stringH =  myfont.getLineHeight() * 0.7f;
-    
-    float rightMargin = ofGetWidth() - 20;
-    ofVec2f originL;
-    originL.set(origin.x + 20 , origin.y + stringH/2);
-    
-//    ofSetColor(255, 0, 0);
-//    ofDrawCircle(originL, 5);
-//    ofSetColor(0, 255, 0);
-//    ofDrawCircle(origin, 5);
-    
-    float textX;
-    
-    // Population
-    textX = rightMargin - popText.getStringBoundingBox("Population", 0, 0).width;
-    if (popSelected) {
-        ofSetColor(popColor);
-    } else {
-        ofSetColor(popColor, 255);
-    }
-    popText.drawString("Population", textX, originL.y + stringH);
-
-    // Life Expectancy
-    textX = rightMargin - lifeExpText.getStringBoundingBox("Life Expectancy", 0, 0).width;
-    if (lifeExpSelected) {
-        ofSetColor(lifeExpColor);
-    } else {
-        ofSetColor(lifeExpColor, 255);
-    }
-    lifeExpText.drawString("Life Expectancy", textX, originL.y + stringH*2);
-
-    // Eco Foot Print
-    textX = rightMargin - ecoFootText.getStringBoundingBox("Eco Foot Print", 0, 0).width;
-    if (ecoFootSelected) {
-        ofSetColor(ecoFootColor);
-    } else {
-        ofSetColor(ecoFootColor, 255);
-    }
-    ecoFootText.drawString("Eco Foot Print", textX, originL.y + stringH*3);
-
-    // Food
-    textX = rightMargin - foodText.getStringBoundingBox("Food", 0, 0).width;
-    if (foodSelected) {
-        ofSetColor(foodColor);
-    } else {
-        ofSetColor(foodColor, 255);
-    }
-    foodText.drawString("Food", textX, originL.y + stringH*4);
-
-    // Industry
-    textX = rightMargin - industryText.getStringBoundingBox("Industry", 0, 0).width;
-    if (industrySelected) {
-        ofSetColor(industryColor);
-    } else {
-        ofSetColor(industryColor, 255);
-    }
-    industryText.drawString("Industry", textX, originL.y + stringH*5);
-
-    popRect = popText.getStringBoundingBox("Population", textX, originL.y + stringH);
-    lifeExpRect  = lifeExpText.getStringBoundingBox("Life Expectancy", textX, originL.y + stringH*2);
-    ecoFootRect  = ecoFootText.getStringBoundingBox("Eco Foot Print", textX, originL.y + stringH*3);
-    foodRect  = foodText.getStringBoundingBox("Food", textX, originL.y + stringH*4);
-    industryRect  = industryText.getStringBoundingBox("Industry", textX, originL.y + stringH*5);
-    
-   //ofSetColor(40);
-    //ofDrawRectangle(origin.x, origin.y + 20, plotWidth, plotHeight);
-}
-
-
 //--------------------------------------------------------------
 void ofApp::draw(){
     //worldImage.draw(0,0);
     ofSetColor(255, 255, 255, 255);
+    ofDrawLine(0, centreH, centreW*2, centreH);
+    ofDrawLine(centreW, 0, centreW, centreH*2);
+
+    
+    
     //placemarkerImage.draw(0,0);
     cam.begin();
 
@@ -159,11 +93,12 @@ void ofApp::draw(){
     //cellArrayToImage();
     
     drawGUI();
-      dataPlotter();
+    dataPlotter();
     drawDataLegend();
 ////
 //
     drawCityImages();
+    citySelect();
 }
 
 
@@ -191,10 +126,11 @@ void ofApp::myGraphCols(){
 }
 
 void ofApp::dataPlotter(){
-    plotWidth = ofGetWidth() * 0.3f;
-    plotHeight = ofGetHeight() * 0.2f;
-    origin.set(ofGetWidth() - plotWidth - 20, plotHeight + 30);
+    plotWidth = imageSize; //ofGetWidth() * 0.3f;
+    plotHeight = imageSize; //ofGetHeight() * 0.2f;
+    origin.set(ofGetWidth() - plotWidth - 20, plotHeight + 30 + ofGetHeight()/2);
 
+    origin.set(ofGetWidth() - plotWidth - edgeOffset, centreH - plotHeight/2);
 
     
     if(pollutionPoly.size() > 0){
@@ -254,23 +190,75 @@ void ofApp::dataPlotter(){
         
     }
     ofSetColor(50);
-    ofDrawRectRounded(origin.x, 0 + 10, plotWidth, plotHeight + 30 , 25);
+    //ofDrawRectRounded(origin.x, centreH + 10 - (plotHeight/2), plotWidth, plotHeight + 30 , 25);
+    ofDrawRectangle(origin.x, origin.y, plotWidth, plotHeight);
     ofSetColor(200);
-    ofDrawRectRounded(origin.x -10, 0, plotWidth + 20, plotHeight + 30  + 20 , 25);
+    int borderOffset = 10;
+    ofDrawRectangle(origin.x - borderOffset, origin.y - borderOffset, plotWidth + borderOffset*2, plotHeight + borderOffset*2);
+
+    //ofDrawRectRounded(origin.x -10, 0, plotWidth + 20, plotHeight + 30  + 20 , 25);
     
- 
+}
+
+void ofApp::drawDataLegend(){
+    float legendYDim =  10;
+    myfont.setLineHeight(legendYDim * 5.0f);
+    float stringH =  myfont.getLineHeight() * 0.7f;
+    
+    float rightMargin = ofGetWidth() - edgeOffset;
+    ofVec2f originL;
+    originL.set(origin.x + 20 , origin.y + stringH/2 + 300);
+    
+    ofSetColor(255, 0, 0);
+    ofDrawCircle(originL, 5);
+    
+    float textX;
+    
+    // Population
+    textX = rightMargin - popText.getStringBoundingBox("Population", 0, 0).width;
+    ofSetColor(popColor);
+    popText.drawString("Population", textX, originL.y + stringH);
+    
+    // Life Expectancy
+    textX = rightMargin - lifeExpText.getStringBoundingBox("Life Expectancy", 0, 0).width;
+    ofSetColor(lifeExpColor);
+    lifeExpText.drawString("Life Expectancy", textX, originL.y + stringH*2);
+
+    // Eco Foot Print
+    textX = rightMargin - ecoFootText.getStringBoundingBox("Eco Foot Print", 0, 0).width;
+    ofSetColor(ecoFootColor);
+
+    ecoFootText.drawString("Eco Foot Print", textX, originL.y + stringH*3);
+
+    // Food
+    textX = rightMargin - foodText.getStringBoundingBox("Food", 0, 0).width;
+    ofSetColor(foodColor);
+    foodText.drawString("Food", textX, originL.y + stringH*4);
+
+    // Industry
+    textX = rightMargin - industryText.getStringBoundingBox("Industry", 0, 0).width;
+    ofSetColor(industryColor);
+    industryText.drawString("Industry", textX, originL.y + stringH*5);
+
+    popRect = popText.getStringBoundingBox("Population", textX, originL.y + stringH);
+    lifeExpRect  = lifeExpText.getStringBoundingBox("Life Expectancy", textX, originL.y + stringH*2);
+    ecoFootRect  = ecoFootText.getStringBoundingBox("Eco Foot Print", textX, originL.y + stringH*3);
+    foodRect  = foodText.getStringBoundingBox("Food", textX, originL.y + stringH*4);
+    industryRect  = industryText.getStringBoundingBox("Industry", textX, originL.y + stringH*5);
+    
+   //ofSetColor(40);
+    //ofDrawRectangle(origin.x, origin.y + 20, plotWidth, plotHeight);
 }
 
 void ofApp::updatePlotter(){
     ofSetLineWidth(3);
-
     float xx = ((float)currentYear / 200.0f) * (plotWidth - 40) + origin.x + 20;
     float graphPolyHeight = plotHeight - 20;
-    populationPoly.addVertex( xx , origin.y - (populationData[currentYear] * graphPolyHeight + 10));
-    pollutionPoly.addVertex( xx , origin.y - (ecoFootData[currentYear] * graphPolyHeight + 10));
-    foodPoly.addVertex( xx , origin.y - (foodData[currentYear] * graphPolyHeight + 10));
-    industryPoly.addVertex( xx , origin.y - (industryData[currentYear] * graphPolyHeight + 10));
-    lifeExpPoly.addVertex( xx , origin.y - (lifeExpData[currentYear] * graphPolyHeight + 10));
+    populationPoly.addVertex( xx , origin.y + imageSize  - (populationData[currentYear] * graphPolyHeight + 10));
+    pollutionPoly.addVertex( xx , origin.y + imageSize - (ecoFootData[currentYear] * graphPolyHeight + 10));
+    foodPoly.addVertex( xx , origin.y + imageSize - (foodData[currentYear] * graphPolyHeight + 10));
+    industryPoly.addVertex( xx , origin.y  + imageSize- (industryData[currentYear] * graphPolyHeight + 10));
+    lifeExpPoly.addVertex( xx , origin.y + imageSize - (lifeExpData[currentYear] * graphPolyHeight + 10));
     
 //    populationPoly.getSmoothed(5, 0.33f);
 //    pollutionPoly.getSmoothed(5, 0.33f);
@@ -293,6 +281,7 @@ void ofApp::earthSpinning(){
     }
     
     cellArrayToImage3D();
+    //ofDrawLine(256+20,  ofGetHeight()/2 - 128, 0, cells[40][40].pos3D.x, cells[40][40].pos3D.y, cells[40][40].pos3D.z);
 
     ofPopMatrix();
 
@@ -640,8 +629,7 @@ void ofApp::drawGUI(){
     ofDrawBitmapStringHighlight("point " + ofToString(mouseX) + " / " + ofToString(ofGetWidth())
                                 + " "  + ofToString(mouseY) + " / " + ofToString(ofGetHours()), 600, 600);
 
-    centreH = ofGetHeight()/2;
-    centreW = ofGetWidth()/2;
+
     ofSetRectMode(OF_RECTMODE_CORNER);
     ofFill();
     ofSetColor(255, 255, 255);
@@ -822,6 +810,18 @@ void ofApp::mousePressed(int x, int y, int button){
 //        industrySelected = true;
 //        std::cout << "Inside industryRect" << std::endl;
 //    }
+    
+    if (leftArrowBox.inside(x, y)) {
+        cout << "Left city clicked!" << endl;
+        currentCityIndex = (currentCityIndex - 1 + cities.size()) % cities.size();
+
+    }
+
+    if (rightArrowBox.inside(x, y)) {
+        cout << "Right city clicked!" << endl;
+        currentCityIndex = (currentCityIndex + 1) % cities.size();
+
+    }
 }
 
 //--------------------------------------------------------------
@@ -971,6 +971,11 @@ void ofApp::variableSetup(){
     sphere.setRadius(128);
     spherePlanet.setRadius(32);
     rotationAngle = 0.0;
+    currentCityIndex = 0;
+//    cities = {"New York", "Cairo", "Lagos", "Mexico"};
+    cities = {"NEW YORK", "CAIRO", "LAGOS", "MEXICO"};
+
+
 }
 
 void ofApp::setupMaxYear(){
@@ -1189,7 +1194,7 @@ void ofApp::fontSetup(){
     ecoFootText.load(fontname, 18);
     industryText.load(fontname, 18);
     timelineText.load(fontname, 12);
-    
+    cityFont.load(fontname, 24);
 }
 
 void ofApp::loadImageForYear(std::string condition) {
@@ -1203,15 +1208,15 @@ void ofApp::loadImageForYear(std::string condition) {
         if (ofFile::doesFileExist(imageName)) {
             if (cityName == "New York") {
                 cityImgNY.load(imageName);
-                cityImgNY.resize(300, 300);
+                cityImgNY.resize(imageSize, imageSize);
             }
             else if (cityName == "Mexico City") {
                 cityImgMexico.load(imageName);
-                cityImgMexico.resize(300, 300);
+                cityImgMexico.resize(imageSize, imageSize);
             }
             else if (cityName == "Cairo") {
                 cityImgCairo.load(imageName);
-                cityImgCairo.resize(300, 300);
+                cityImgCairo.resize(imageSize, imageSize);
             }
             else {
                 std::cout << "Unknown city: " << cityName << std::endl;
@@ -1240,19 +1245,22 @@ std::string ofApp::convertWorld(const std::string& input) {
 
 void ofApp::drawCityImages() {
     
-    
-    if (bShowImageNY) {
-        ofSetColor(255);
-        cityImgNY.draw(20, ofGetHeight()/2);
-    }
-    else if (bShowImageMexico) {
-        ofSetColor(255);
-        cityImgMexico.draw(20, ofGetHeight()/2);
-    }
-    else if (bShowImageCairo) {
-        ofSetColor(255);
-        cityImgCairo.draw(20, ofGetHeight()/2);
-    }
+    ofSetColor(255);
+    ofSetColor(200);
+   
+    int borderOffset = 10;
+    ofDrawRectangle(origin.x - borderOffset, origin.y - borderOffset, plotWidth + borderOffset*2, plotHeight + borderOffset*2); ///??? not showing ??
+        
+        if (bShowImageNY) {
+            cityImgNY.draw(edgeOffset, ofGetHeight()/2 - imageSize/2);
+        }
+        if (bShowImageMexico) {
+            cityImgMexico.draw(edgeOffset, ofGetHeight()/2 - imageSize/2);
+        }
+        if (bShowImageCairo) {
+            cityImgCairo.draw(edgeOffset, ofGetHeight()/2 - imageSize/2);
+        }
+
 }
 
 void ofApp::initCityBools(){
@@ -1260,3 +1268,43 @@ void ofApp::initCityBools(){
     bShowImageMexico = false;
     bShowImageCairo = false;
 }
+
+void ofApp::citySelect(){
+    // Draw the red rectangle
+    ofSetColor(255, 0, 0);
+    
+    //ofDrawRectangle(edgeOffset, centreH + imageSize/2 + edgeOffset/2, imageSize, 60);
+    
+    float rectWidth = imageSize;
+    float rectHeight = 60;
+    float triangleSize = rectHeight;
+    float triangleHeight = sqrt(3.0) / 2.0 * triangleSize;
+    
+    leftTriangleA.set(edgeOffset - triangleHeight / 2 +20, centreH + imageSize / 2 + edgeOffset/2 + rectHeight / 2);
+    leftTriangleB.set(edgeOffset + triangleHeight / 2 +20, centreH + imageSize / 2 + edgeOffset/2 + rectHeight / 2 - triangleSize / 2);
+    leftTriangleC.set(edgeOffset + triangleHeight / 2 + 20, centreH + imageSize / 2 + edgeOffset/2 + rectHeight / 2 + triangleSize / 2);
+    
+    rightTriangleA.set(edgeOffset + rectWidth + triangleHeight / 2 -20, centreH + imageSize / 2 + edgeOffset/2 + rectHeight / 2);
+    rightTriangleB.set(edgeOffset + rectWidth - triangleHeight / 2 - 20, centreH + imageSize / 2 + edgeOffset/2 + rectHeight / 2 - triangleSize / 2);
+    rightTriangleC.set(edgeOffset + rectWidth - triangleHeight / 2 - 20, centreH + imageSize / 2 + edgeOffset/2 + rectHeight / 2 + triangleSize / 2);
+    
+    ofSetColor(200);
+    ofDrawTriangle(leftTriangleA, leftTriangleB, leftTriangleC);
+    ofDrawTriangle(rightTriangleA, rightTriangleB, rightTriangleC);
+    
+    leftArrowBox.set(leftTriangleA.x, leftTriangleB.y, triangleHeight, triangleSize);
+    rightArrowBox.set(rightTriangleB.x, rightTriangleB.y, triangleHeight, triangleSize);
+
+    ofSetColor(255); // White color for the box
+//    ofNoFill();
+//    ofDrawRectangle(leftArrowBox);
+//    ofDrawRectangle(rightArrowBox);
+//    ofFill();
+    
+    string currentCity = cities[currentCityIndex];
+    ofRectangle cityBox = cityFont.getStringBoundingBox(currentCity, 0, 0);
+    float cityX = edgeOffset + rectWidth / 2 - cityBox.width / 2;
+    float cityY = centreH + imageSize / 2 + edgeOffset + + cityBox.height / 2;
+    cityFont.drawString(currentCity, cityX, cityY);
+}
+
