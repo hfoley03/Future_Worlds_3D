@@ -28,6 +28,9 @@ void ofApp::setup(){
     placemarkerImage.load("photos/Cairo/Cairo_neutral_2095.png");
 
     initCityBools();
+    currentCity = "NEW YORK";
+    updateImageForYear(worldType);
+    loadImageForYear();
     
     startTime = 0;
     float transitionStartTime = 0.0f;
@@ -58,6 +61,9 @@ void ofApp::update(){
             
             currentYear += 1;
             lastMinute = now;
+
+            updateImageForYear(worldType);
+            loadImageForYear();
         }
     }
     
@@ -89,7 +95,6 @@ void ofApp::update(){
         }
     }
 
-    loadImageForYear(worldType);
     
     float fps = ofGetFrameRate();
     std::string fpsString = "FPS: " + std::to_string(fps);
@@ -754,16 +759,6 @@ void ofApp::keyPressed(int key){
             transitionStartTime = ofGetElapsedTimef();
             moveToGlobe = !moveToGlobe;
             break;
-        // for city images
-        case 'z':
-            bShowImageNY = !bShowImageNY;
-            break;
-        case 'x':
-            bShowImageCairo = !bShowImageCairo;
-            break;
-        case 'c':
-            bShowImageMexico = !bShowImageMexico;
-            break;
         case 'N':
             isDrifting = !isDrifting;
             break;
@@ -995,7 +990,7 @@ void ofApp::variableSetup(){
     currentCityIndex = 0;
     oscOut.setup("localhost", 8080);    //OSC
     oscIn.setup(8000);                  //OSC
-    cities = {"NEW YORK", "CAIRO", "LAGOS", "MEXICO"};
+    cities = {"NEW YORK", "CAIRO", "LAGOS", "RIO"};
     worldMessages = {"what if we do nothing?","whats the best we can hope for?", "whats the worst that could happen?"};
 
 
@@ -1230,34 +1225,94 @@ void ofApp::fontSetup(){
     worldMessageFont.load(fontname, 18);
 }
 
-void ofApp::loadImageForYear(std::string condition) {
+
+void ofApp::updateImageForYear(std::string condition) {
     string condition_conv = convertWorld(condition);
     int realCurrentYear = currentYear + startYear;
-    std::vector<std::string> cityNames = { "New York", "Mexico City", "Cairo" };
-    for (const auto& cityName : cityNames) {
-        std::string imageName = "photos/" + cityName + "/" + cityName + "_" 
-            + condition_conv + "_" + std::to_string(realCurrentYear) + ".png";
 
+    for (int i = 0; i < 4; i++){
+        string cityName = cities[i];
+        string currentCityLC = toTitleCase(cityName);
+        std::string imageName = "photos/" + currentCityLC + "/" + currentCityLC + "_"
+            + condition_conv + "_" + std::to_string(realCurrentYear) + ".png";
         if (ofFile::doesFileExist(imageName)) {
-            if (cityName == "New York") {
+            if (currentCityLC == "New York") {
                 cityImgNY.load(imageName);
                 cityImgNY.resize(imageSize, imageSize);
             }
-            else if (cityName == "Mexico City") {
-                cityImgMexico.load(imageName);
-                cityImgMexico.resize(imageSize, imageSize);
+            else if (currentCityLC == "Rio") {
+                cityImgRio.load(imageName);
+                cityImgRio.resize(imageSize, imageSize);
+
             }
-            else if (cityName == "Cairo") {
+            else if (currentCityLC == "Cairo") {
                 cityImgCairo.load(imageName);
                 cityImgCairo.resize(imageSize, imageSize);
             }
+            else if (currentCityLC == "Lagos") {
+                cityImgLagos.load(imageName);
+                cityImgLagos.resize(imageSize, imageSize);
+            }
             else {
-                std::cout << "Unknown city: " << cityName << std::endl;
+                std::cout << "Unknown city: " << currentCityLC << std::endl;
             }
         }
+    }
+}
+
+
+void ofApp::loadImageForYear() {
+    string currentCityLC = toTitleCase(currentCity);
+
+    
+    if (currentCityLC == "New York") {
+        bShowImageNY = true;
+        bShowImageRio = false;
+        bShowImageCairo = false;
+        bShowImageLagos = false;
+    }
+    else if (currentCityLC == "Rio") {
+        bShowImageNY = false;
+        bShowImageRio = true;
+        bShowImageCairo = false;
+        bShowImageLagos = false;
+
+    }
+    else if (currentCityLC == "Cairo") {
+        bShowImageNY = false;
+        bShowImageRio = false;
+        bShowImageCairo = true;
+        bShowImageLagos = false;
+    }
+    else if (currentCityLC == "Lagos") {
+        bShowImageNY = false;
+        bShowImageRio = false;
+        bShowImageCairo = false;
+        bShowImageLagos = true;
+    }
+        
+
+    
+}
+
+std::string ofApp::toTitleCase(const std::string& input) {
+    std::string result = input;
+    bool capitalize = true;
+
+    for (size_t i = 0; i < result.length(); ++i) {
+        if (result[i] == ' ') {
+            capitalize = true;
+        }
+        else if (capitalize && std::isalpha(result[i])) {
+            result[i] = std::toupper(result[i]);
+            capitalize = false;
+        }
         else {
+            result[i] = std::tolower(result[i]);
         }
     }
+
+    return result;
 }
 
 std::string ofApp::convertWorld(const std::string& input) {
@@ -1277,7 +1332,6 @@ std::string ofApp::convertWorld(const std::string& input) {
 }
 
 void ofApp::drawCityImages() {
-    
     ofSetColor(255);
     ofSetColor(200);
    
@@ -1287,22 +1341,27 @@ void ofApp::drawCityImages() {
     ofSetColor(255, 255, 255, fadeInOut);
 
         
-        if (bShowImageNY) {
-            cityImgNY.draw(edgeOffset, ofGetHeight()/2 - imageSize/2);
-        }
-        if (bShowImageMexico) {
-            cityImgMexico.draw(edgeOffset, ofGetHeight()/2 - imageSize/2);
-        }
-        if (bShowImageCairo) {
-            cityImgCairo.draw(edgeOffset, ofGetHeight()/2 - imageSize/2);
-        }
+    if (bShowImageNY) {
+        cityImgNY.draw(edgeOffset, ofGetHeight()/2 - imageSize/2);
+    }
+    if (bShowImageRio) {
+        cityImgRio.draw(edgeOffset, ofGetHeight()/2 - imageSize/2);
+    }
+    if (bShowImageCairo) {
+        cityImgCairo.draw(edgeOffset, ofGetHeight()/2 - imageSize/2);
+    }
+    if (bShowImageLagos) {
+        cityImgLagos.draw(edgeOffset, ofGetHeight() / 2 - imageSize / 2);
+    }
+
 
 }
 
 void ofApp::initCityBools(){
     bShowImageNY = false;
-    bShowImageMexico = false;
+    bShowImageRio = false;
     bShowImageCairo = false;
+    bShowImageLagos = false;
 }
 
 void ofApp::citySelect(){
@@ -1336,7 +1395,7 @@ void ofApp::citySelect(){
 //    ofDrawRectangle(rightArrowBox);
 //    ofFill();
     
-    string currentCity = cities[currentCityIndex];
+    currentCity = cities[currentCityIndex];
     ofRectangle cityBox = cityFont.getStringBoundingBox(currentCity, 0, 0);
     float cityX = edgeOffset + rectWidth / 2 - cityBox.width / 2;
     float cityY = centreH + imageSize / 2 + edgeOffset + + cityBox.height / 2;
