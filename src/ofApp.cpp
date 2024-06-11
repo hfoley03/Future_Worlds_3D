@@ -43,7 +43,7 @@ void ofApp::update(){
     centreH = ofGetHeight()/2;
     centreW = ofGetWidth()/2;
     updatePlanets();
-
+    sendOsc();
     fadeInOut =255.0f * fadeValue;
     //cout << fadeInOut << endl;
     if(currentYear == 199){ start = false;}
@@ -54,7 +54,7 @@ void ofApp::update(){
             automaCellulare();
             checkDataDirection();
             updatePlotter();
-            sendOsc();
+            
             currentYear += 1;
             lastMinute = now;
         }
@@ -65,11 +65,15 @@ void ofApp::update(){
     if (moveToGlobe) {
         fadeValue = ofClamp(timeSinceStart / transitionDuration, 0.0f, 1.0f);
     } else {
-        fadeValue = ofClamp(1.0f - (timeSinceStart / transitionDuration), 0.0f, 1.0f);
+        fadeValue = ofClamp(1.0f - (timeSinceStart / 6.0f), 0.0f, 1.0f);
     }
     
     cout << fadeValue << endl;
     
+    ofxOscMessage m5;
+    m5.setAddress("/foley");
+    m5.addFloatArg(fadeValue);
+    oscOut.sendMessage(m5);
 
     
     if(isDrifting){
@@ -149,60 +153,31 @@ void ofApp::dataPlotter(){
 
     
     if(pollutionPoly.size() > 0){
-        ofSetColor(blue, 100);
-        ofSetColor(255, 255, 255);
-        ofSetColor(0, 255, 0);
-        ofSetColor(blue, 255);
-        ofSetColor(50, 50, 50);
         
-        if (popSelected) {
-            ofSetColor(popColor);
-        } else {
-            ofSetColor(popColor, 100);
-        }
+        ofSetColor(popColor, fadeInOut);
         ofDrawCircle(populationPoly.getVertices()[0], 5);
         ofDrawCircle(populationPoly.getVertices().back(), 5);
         populationPoly.draw();
 
-        if (lifeExpSelected) {
-            ofSetColor(lifeExpColor);
-        } else {
-            ofSetColor(lifeExpColor, 100);
-        }
+        ofSetColor(lifeExpColor, fadeInOut);
         ofDrawCircle(lifeExpPoly.getVertices()[0], 5);
         ofDrawCircle(lifeExpPoly.getVertices().back(), 5);
         lifeExpPoly.draw();
 
-        if (ecoFootSelected) {
-            ofSetColor(ecoFootColor);
-        } else {
-            ofSetColor(ecoFootColor, 100);
-        }
+        ofSetColor(ecoFootColor, fadeInOut);
         pollutionPoly.draw();
         ofDrawCircle(pollutionPoly.getVertices()[0], 5);
         ofDrawCircle(pollutionPoly.getVertices().back(), 5);
 
-        if (foodSelected) {
-            ofSetColor(foodColor);
-        } else {
-            ofSetColor(foodColor, 100);
-        }
+        ofSetColor(foodColor, fadeInOut);
         ofDrawCircle(foodPoly.getVertices()[0], 5);
         ofDrawCircle(foodPoly.getVertices().back(), 5);
         foodPoly.draw();
 
-        if (industrySelected) {
-            ofSetColor(industryColor);
-        } else {
-            ofSetColor(industryColor, 100);
-        }
+        ofSetColor(industryColor, fadeInOut);
         ofDrawCircle(industryPoly.getVertices()[0], 5);
         ofDrawCircle(industryPoly.getVertices().back(), 5);
         industryPoly.draw();
-
-        
-        
-        
     }
     ofSetColor(50,50,50, fadeInOut);
     //ofDrawRectRounded(origin.x, centreH + 10 - (plotHeight/2), plotWidth, plotHeight + 30 , 25);
@@ -993,7 +968,7 @@ void ofApp::variableSetup(){
     spherePlanet.setRadius(32);
     rotationAngle = 0.0;
     currentCityIndex = 0;
-    oscOut.setup("localhost", 8000);    //OSC
+    oscOut.setup("localhost", 8080);    //OSC
     oscIn.setup(8000);                  //OSC
     cities = {"NEW YORK", "CAIRO", "LAGOS", "MEXICO"};
     worldMessages = {"what if we do nothing?","whats the best we can hope for?", "whats the worst that could happen?"};
@@ -1363,33 +1338,62 @@ void ofApp::titleDisplay(){
 
 void ofApp::sendOsc(){
     //timeSent = ofGetElapsedTimef();
+    float initPopOSCVal = populationData[0];
+    float initPulOSCVal = ecoFootData[0];
+    float initIndOSCVal = industryData[0];
+    float initPulIncOSCVal = 1.0f - ecoFootData[0];
+    float initFoodOSCVal = foodData[0];
+
+    float popOSCVal = populationData[currentYear];
+    float pulOSCVal = ecoFootData[currentYear];
+    float indOSCVal = industryData[currentYear];
+    float pulIncOSCVal = 1.0f - ecoFootData[currentYear];
+    float foodOSCVal = foodData[currentYear];
+
+
     ofxOscMessage m1;
     m1.setAddress("/pop");
 
     
     ofxOscMessage m2;
     m2.setAddress("/pul");
-
+    ofxOscMessage m4;
+    m4.setAddress("/pulInv");
     
     ofxOscMessage m3;
     m3.setAddress("/ind");
+    
+    ofxOscMessage m6;
+    m6.setAddress("/food");
+
 
     
     if(currentYear < 2098){
-        m1.addFloatArg(populationData[currentYear]);
-        m2.addFloatArg(ecoFootData[currentYear]);
-        m3.addFloatArg(industryData[currentYear]);
+        m1.addFloatArg(popOSCVal);
+        m2.addFloatArg(pulOSCVal);
+        m3.addFloatArg(indOSCVal);
+        m4.addFloatArg(pulIncOSCVal);
+        m6.addFloatArg(foodOSCVal);
+
+
     }
     else {
-        m1.addFloatArg(0.0);
-        m2.addFloatArg(0.0);
-        m3.addFloatArg(0.0);
+        m1.addFloatArg(initPopOSCVal);
+        m2.addFloatArg(initPulOSCVal);
+        m3.addFloatArg(initIndOSCVal);
+        m4.addFloatArg(initPulIncOSCVal);
+        m6.addFloatArg(initFoodOSCVal);
+
     }
     
     oscOut.sendMessage(m3);
     oscOut.sendMessage(m1);
     oscOut.sendMessage(m2);
+    oscOut.sendMessage(m4);
+    oscOut.sendMessage(m6);
 
-    
+
+
+    cout << m4 << endl;
     
 }
