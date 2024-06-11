@@ -1426,7 +1426,6 @@ void ofApp::titleDisplay(){
     //ofDrawRectangle(worldSwapButton);
 }
 
-
 void ofApp::sendOsc(){
     //timeSent = ofGetElapsedTimef();
     float initPopOSCVal = populationData[0];
