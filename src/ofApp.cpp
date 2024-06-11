@@ -105,19 +105,19 @@ void ofApp::draw(){
 
     
     //placemarkerImage.draw(0,0);
-//    cam.begin();
-//
-//    drawPlanets();
-//    earthSpinning();
-//
-//    cam.end();
+    cam.begin();
 
-    cellArrayToImage();
-//    drawGUI();
-//    dataPlotter();
-//    drawDataLegend();
-//    drawCityImages();
-//    citySelect();
+    drawPlanets();
+    earthSpinning();
+
+    cam.end();
+
+//    cellArrayToImage();
+    drawGUI();
+    dataPlotter();
+    drawDataLegend();
+    drawCityImages();
+    citySelect();
     
 
 }
@@ -465,7 +465,8 @@ void ofApp::automaCellulare(){
                     else if ( cellType == "ice"){nIce += 1;}
                     else if ( cellType == "sand"){nSand += 1;}
                     else if ( cellType == "ocean"){nOcean += 1;}
-                    else {nCity += 1;}
+                    else if ( cellType == "city"){nCity += 1;}
+
                 }
             }
             float chance = ofRandom(8.0);
@@ -521,6 +522,27 @@ void ofApp::automaCellulare(){
                 }
             }
             
+            
+            if(true){
+                if(populationIncreasing){
+                    if(currentType == "grass" && nCity >= 1){
+                        if(chance < 0.1f){
+                            cells[i][j].cellType = "city";
+                            cells[i][j].cellColor = ofColor(255,0,0);
+                        }
+                    }
+                }
+                if(!populationIncreasing){
+                    if(currentType == "city" && nGrass >= 2 && currentInitType == "grass" ){
+                        if(chance < 0.1f){
+                            cells[i][j].cellType = "grass";
+                            cells[i][j].cellColor = grassColors[(int)ofRandom(7)];
+                        }
+                    }
+                }
+            }
+            
+            
             // Eco Foot Rule ice Vs sea
             if(true){
                 if(pollutionIncreasing){
@@ -537,7 +559,7 @@ void ofApp::automaCellulare(){
                 if(!pollutionIncreasing){
                     if(currentType == "ocean" && currentInitType == "ice"){
                         if(ecoFootData[currentYear] < 0.4){
-                            if(chance < 1.0){ //chance
+                            if(chance < 1.5){ //chance
                                 cells[i][j].cellType = "ice";
                                 cells[i][j].cellColor = ofColor(230,240,244);
                             }
@@ -995,6 +1017,8 @@ void ofApp::resetSimulation(){
     for (int i = 0; i < 80; i++) {
         for (int j = 0; j < 80; j++) {
             cells[i][j].cellColor = cells[i][j].initCellcolor;
+            cells[i][j].cellType = cells[i][j].initCellType;
+
         }
     }
     
