@@ -546,9 +546,9 @@ void ofApp::automaCellulare(){
             // Eco Foot Rule ice Vs sea
             if(true){
                 if(pollutionIncreasing){
-                    if(ecoFootData[currentYear] > 0.3){
+                    if(ecoFootData[currentYear] > 0.4){
                         if(currentType == "ice" && nOcean >= 4){
-                            if(chance < ecoFootData[currentYear]){ //chance chance < ecoFootData[currentYear]
+                            if(chance < ecoFootData[currentYear] *2.0f){ //chance chance < ecoFootData[currentYear]
                                 cells[i][j].cellType = "ocean";
                                 cells[i][j].cellColor = seaColors[(int)ofRandom(6)];
                             }
@@ -559,7 +559,7 @@ void ofApp::automaCellulare(){
                 if(!pollutionIncreasing){
                     if(currentType == "ocean" && currentInitType == "ice"){
                         if(ecoFootData[currentYear] < 0.4){
-                            if(chance < 1.5){ //chance
+                            if(chance < 2.0){ //chance
                                 cells[i][j].cellType = "ice";
                                 cells[i][j].cellColor = ofColor(230,240,244);
                             }
