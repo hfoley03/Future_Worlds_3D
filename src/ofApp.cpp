@@ -1019,6 +1019,7 @@ void ofApp::resetSimulation(){
 
         }
     }
+    updateImageForYear(worldType);
     
     
     cout << "Reset Simulation" << endl;
