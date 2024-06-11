@@ -105,19 +105,19 @@ void ofApp::draw(){
 
     
     //placemarkerImage.draw(0,0);
-    cam.begin();
+//    cam.begin();
+//
+//    drawPlanets();
+//    earthSpinning();
+//
+//    cam.end();
 
-    drawPlanets();
-    earthSpinning();
-
-    cam.end();
-
-    //cellArrayToImage();
-    drawGUI();
-    dataPlotter();
-    drawDataLegend();
-    drawCityImages();
-    citySelect();
+    cellArrayToImage();
+//    drawGUI();
+//    dataPlotter();
+//    drawDataLegend();
+//    drawCityImages();
+//    citySelect();
     
 
 }
@@ -1109,6 +1109,11 @@ string ofApp::classifyCelltype(ofColor rgbColor, float imHeight, float j)
     else if (findColor(rgbColor, 170.f, 270.f)) {return "ocean";}
     else if (findColor(rgbColor, 70.f, 169.f)) {return "grass";}
     else if (rgbColor.getBrightness() < 150.0f) {return"grass";}
+    
+    if(findColor(rgbColor, 0.0f, 10.0f)){
+        cout << "city" << endl;
+        return "city";
+    }
     
     return "sand";
 }
