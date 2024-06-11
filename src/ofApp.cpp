@@ -68,7 +68,7 @@ void ofApp::update(){
         fadeValue = ofClamp(1.0f - (timeSinceStart / 6.0f), 0.0f, 1.0f);
     }
     
-    cout << fadeValue << endl;
+    //cout << fadeValue << endl;
     
     ofxOscMessage m5;
     m5.setAddress("/foley");
@@ -822,11 +822,13 @@ void ofApp::mousePressed(int x, int y, int button){
     
     
     if(worldSwapButton.inside(x,y)){
-        cout << "WorldSwap clicked!" << endl;
         currentWorldIndex++;
         if(currentWorldIndex > 2){
             currentWorldIndex = 0;
         }
+        
+        cout << "WorldSwap clicked! "  + ofToString(currentWorldIndex)<< endl;
+        
         if(currentWorldIndex == 0){
             normSetup();
             worldType ="Normal World";
@@ -1420,9 +1422,5 @@ void ofApp::sendOsc(){
     oscOut.sendMessage(m2);
     oscOut.sendMessage(m4);
     oscOut.sendMessage(m6);
-
-
-
-    cout << m4 << endl;
     
 }
