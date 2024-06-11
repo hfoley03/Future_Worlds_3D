@@ -74,7 +74,7 @@ void ofApp::update(){
         fadeValue = ofClamp(1.0f - (timeSinceStart / 6.0f), 0.0f, 1.0f);
     }
     
-    cout << fadeValue << endl;
+    //cout << fadeValue << endl;
     
     ofxOscMessage m5;
     m5.setAddress("/foley");
@@ -117,7 +117,7 @@ void ofApp::draw(){
 
     cam.end();
 
-    //cellArrayToImage();
+//    cellArrayToImage();
     drawGUI();
     dataPlotter();
     drawDataLegend();
@@ -470,7 +470,8 @@ void ofApp::automaCellulare(){
                     else if ( cellType == "ice"){nIce += 1;}
                     else if ( cellType == "sand"){nSand += 1;}
                     else if ( cellType == "ocean"){nOcean += 1;}
-                    else {nCity += 1;}
+                    else if ( cellType == "city"){nCity += 1;}
+
                 }
             }
             float chance = ofRandom(8.0);
@@ -526,12 +527,33 @@ void ofApp::automaCellulare(){
                 }
             }
             
+            
+            if(true){
+                if(populationIncreasing){
+                    if(currentType == "grass" && nCity >= 1){
+                        if(chance < 0.1f){
+                            cells[i][j].cellType = "city";
+                            cells[i][j].cellColor = ofColor(255,0,0);
+                        }
+                    }
+                }
+                if(!populationIncreasing){
+                    if(currentType == "city" && nGrass >= 2 && currentInitType == "grass" ){
+                        if(chance < 0.1f){
+                            cells[i][j].cellType = "grass";
+                            cells[i][j].cellColor = grassColors[(int)ofRandom(7)];
+                        }
+                    }
+                }
+            }
+            
+            
             // Eco Foot Rule ice Vs sea
             if(true){
                 if(pollutionIncreasing){
-                    if(ecoFootData[currentYear] > 0.3){
+                    if(ecoFootData[currentYear] > 0.4){
                         if(currentType == "ice" && nOcean >= 4){
-                            if(chance < ecoFootData[currentYear]){ //chance chance < ecoFootData[currentYear]
+                            if(chance < ecoFootData[currentYear] *2.0f){ //chance chance < ecoFootData[currentYear]
                                 cells[i][j].cellType = "ocean";
                                 cells[i][j].cellColor = seaColors[(int)ofRandom(6)];
                             }
@@ -542,7 +564,7 @@ void ofApp::automaCellulare(){
                 if(!pollutionIncreasing){
                     if(currentType == "ocean" && currentInitType == "ice"){
                         if(ecoFootData[currentYear] < 0.4){
-                            if(chance < 1.0){ //chance
+                            if(chance < 2.0){ //chance
                                 cells[i][j].cellType = "ice";
                                 cells[i][j].cellColor = ofColor(230,240,244);
                             }
@@ -795,11 +817,13 @@ void ofApp::mousePressed(int x, int y, int button){
     
     
     if(worldSwapButton.inside(x,y)){
-        cout << "WorldSwap clicked!" << endl;
         currentWorldIndex++;
         if(currentWorldIndex > 2){
             currentWorldIndex = 0;
         }
+        
+        cout << "WorldSwap clicked! "  + ofToString(currentWorldIndex)<< endl;
+        
         if(currentWorldIndex == 0){
             normSetup();
             worldType ="Normal World";
@@ -990,6 +1014,8 @@ void ofApp::resetSimulation(){
     for (int i = 0; i < 80; i++) {
         for (int j = 0; j < 80; j++) {
             cells[i][j].cellColor = cells[i][j].initCellcolor;
+            cells[i][j].cellType = cells[i][j].initCellType;
+
         }
     }
     
@@ -1104,6 +1130,11 @@ string ofApp::classifyCelltype(ofColor rgbColor, float imHeight, float j)
     else if (findColor(rgbColor, 170.f, 270.f)) {return "ocean";}
     else if (findColor(rgbColor, 70.f, 169.f)) {return "grass";}
     else if (rgbColor.getBrightness() < 150.0f) {return"grass";}
+    
+    if(findColor(rgbColor, 0.0f, 10.0f)){
+        cout << "city" << endl;
+        return "city";
+    }
     
     return "sand";
 }
@@ -1450,9 +1481,5 @@ void ofApp::sendOsc(){
     oscOut.sendMessage(m2);
     oscOut.sendMessage(m4);
     oscOut.sendMessage(m6);
-
-
-
-    cout << m4 << endl;
     
 }
