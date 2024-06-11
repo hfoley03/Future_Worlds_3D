@@ -35,6 +35,7 @@ void ofApp::setup(){
     fadeValue = 0.0f;
 
     std::cout << "set up finished"  << std::endl;
+    ofSetBackgroundColor(0);
 }
 
 //--------------------------------------------------------------
@@ -112,7 +113,7 @@ void ofApp::draw(){
 
     cam.end();
 
-//    cellArrayToImage();
+  //  cellArrayToImage();
     drawGUI();
     dataPlotter();
     drawDataLegend();
@@ -318,7 +319,7 @@ void ofApp::imageToGrid(){
             double longitude, latitude;
             float S = 128;
             
-            latitude = Gudermannian(convertRange(j,r2,r1));
+            latitude = Gudermannian(convertRange(j,r2,r1));  //from 0-640 to -pi - +pi
             longitude = ofRadToDeg(i / R) - 180.0f;
 
             // conversion to spherical coordinates
