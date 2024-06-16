@@ -1,3 +1,6 @@
+
+![alt text](https://github.com/hfoley03/Future_Worlds_3D/blob/main/bin/data/Screenshot%202024-06-11%20at%2012.51.52.png?raw=true)
+
 # FUTURE WORLDS
 
 Designed  in Openframeworks for Creative Programming and Computing course at Politecnico di Milano. 
