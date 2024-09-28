@@ -1,6 +1,7 @@
 # FUTURE WORLDS
 
-Designed in Openframeworks for Creative Programming and Computing course at Politecnico di Milano. 
+## Designed in Openframeworks for Creative Programming and Computing course at Politecnico di Milano. 
+### Grade Awarded: 30/30 Cum Laude
 
 This project takes data from the World3 model and transforms it to audio visual representation to promote awareness of our control of our planet’s future. The user can select between three different possible outcomes for our planet and explore these through visiting different cities watching our planet blossom or decay.
 
